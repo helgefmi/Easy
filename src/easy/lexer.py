@@ -15,9 +15,7 @@ class Token(object):
 
 class Lexer(object):
     KEYWORDS = (
-        'def', 'if', 'end',
-        'then', 'extern', 'else',
-        'return',
+        'def', 'do', 'end',
     )
     SYMBOLS = (
         ('(', 'tok_paren_start'),

@@ -52,20 +52,8 @@ class CodeGenVisitor(BaseVisitor):
             self.omit('.%s:' % label)
             self.omit('.string "%s"' % string)
 
-    def _omit_header(self):
-        self.omit((
-            '.text',
-            '.globl main',
-            'main:',
-            'pushl %ebp',
-            'movl %esp, %ebp',
-            '',
-        ))
-
     def _omit_footer(self):
         self.omit('')
-        self.omit('leave')
-        self.omit('ret')
         self.omit('')
 
     def omit(self, line):
@@ -112,8 +100,18 @@ class CodeGenVisitor(BaseVisitor):
     def visitBlockStatement(self, node):
         self._visit_list(node.block)
 
-    def visitTopLevel(self, node):
-        self._omit_header()
+    def visitFuncDefinition(self, node):
+        self.omit('.globl %s' % node.func_name)
+        self.omit('%s:' % node.func_name)
+        self.omit('pushl %ebp')
+        self.omit('movl %esp, %ebp')
+
         self.visit(node.block)
-        self._omit_footer()
+
+        self.omit('leave')
+        self.omit('ret')
+
+    def visitTopLevel(self, node):
+        self.omit('.text')
+        self._visit_list(node.block)
         self._omit_rodata()

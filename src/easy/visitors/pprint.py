@@ -40,4 +40,13 @@ class PPrintVisitor(BaseVisitor):
         self._indent -= 1
 
     def visitTopLevel(self, node):
+        self._visit_list(node.block)
+
+    def visitFuncDefinition(self, node):
+        self._print_indent()
+        print "FuncDefinition: %s, [%s]" % (node.func_name,
+                                            ' '.join(map(str, node.args)))
+
+        self._indent += 1
         self.visit(node.block)
+        self._indent -= 1

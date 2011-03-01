@@ -50,6 +50,12 @@ class ExprStatement(Statement):
         return str(self.expr)
 
 # Other?
+class FuncDefinition(ASTNode):
+    def __init__(self, func_name, args, block):
+        self.func_name = func_name
+        self.args = args
+        self.block = block
+
 class TopLevel(ASTNode):
     def __init__(self, block):
         self.block = block

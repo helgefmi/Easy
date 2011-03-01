@@ -1,16 +1,24 @@
-printf(
-    "hei: %d %d (%s) / %d %d\n"
-    strlen("a")
-    time(atoi("0"))
-    "hehe"
-    atoi("252")
-    strcmp("AKKI" strstr("I SAY EKKI!" "EKKI"))
-);
+def test do
+    printf("%d of \"%s\" is \"" 5 "Lorem ipsum dolor sit amet");
+    fflush(0);
+    write(0 "Lorem ipsum dolor sit amet" 5);
+    printf("\"\n");
+end
 
-printf("%d\n" strcmp("AKKI" strstr("I SAY EKKI!" "EKKI")));
-printf("%d\n" strcmp("OKKI" strstr("I SAY EKKI!" "EKKI")));
+def main(a b) do
+    printf(
+        "hei: %d %d (%s) / %d %d\n"
+        strlen("a")
+        time(atoi("0"))
+        "hehe"
+        atoi("252")
+        strcmp("AKKI" strstr("I SAY EKKI!" "EKKI"))
+    );
 
-printf("%d of \"%s\" is \"" 5 "Lorem ipsum dolor sit amet");
-fflush(0);
-write(0 "Lorem ipsum dolor sit amet" 5);
-printf("\"\n");
+    test();
+
+    printf("%d\n" strcmp("AKKI" strstr("I SAY EKKI!" "EKKI")));
+    printf("%d\n" strcmp("OKKI" strstr("I SAY EKKI!" "EKKI")));
+
+    test();
+end
