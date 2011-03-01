@@ -18,6 +18,13 @@ class StringExpr(Expression):
     def __str__(self):
         return '"%s"' % self.string
 
+class NumberExpr(Expression):
+    def __init__(self, number):
+        self.number = number
+
+    def __str__(self):
+        return '"%s"' % self.number
+
 class FuncCallExpr(Expression):
     def __init__(self, func_name, args):
         self.func_name = func_name

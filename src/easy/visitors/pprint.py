@@ -10,6 +10,10 @@ class PPrintVisitor(BaseVisitor):
     def _print_indent(self):
         sys.stdout.write(' ' * (self._indent * 4))
 
+    def visitNumberExpr(self, node):
+        self._print_indent()
+        print 'Number: %d' % node.number
+
     def visitStringExpr(self, node):
         self._print_indent()
         print 'String: "%s"' % node.string

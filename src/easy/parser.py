@@ -32,7 +32,14 @@ class Parser(object):
         return BlockStatement(block)
 
     def parse_expression(self):
-        return self.parse_string() or self.parse_identifier()
+        return self.parse_string() or self.parse_identifier() \
+                or self.parse_number()
+
+    def parse_number(self):
+        number = self._eat_if_token('tok_number')
+        if not number:
+            return False
+        return NumberExpr(number.value)
 
     def parse_string(self):
         string = self._eat_if_token('tok_string')

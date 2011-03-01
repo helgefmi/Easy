@@ -78,6 +78,9 @@ class CodeGenVisitor(BaseVisitor):
             line = '\t' + line
         self.output += line + '\n'
 
+    def visitNumberExpr(self, node):
+        self.reg_stack.push('$%d' % node.number)
+
     def visitStringExpr(self, node):
         label = self._get_string_label(node.string)
         #reg = self.reg_stack.push()

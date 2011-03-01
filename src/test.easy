@@ -9,3 +9,5 @@ printf(
 
 printf("%d\n" strcmp("AKKI" strstr("I SAY EKKI!" "EKKI")));
 printf("%d\n" strcmp("OKKI" strstr("I SAY EKKI!" "EKKI")));
+
+printf("%d\n" 5);
