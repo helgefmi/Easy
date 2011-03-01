@@ -41,3 +41,11 @@ class ExprStatement(Statement):
 
     def __str__(self):
         return str(self.expr)
+
+# Other?
+class TopLevel(ASTNode):
+    def __init__(self, block):
+        self.block = block
+
+    def __str__(self):
+        return str(self.block)

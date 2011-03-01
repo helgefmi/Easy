@@ -34,3 +34,6 @@ class PPrintVisitor(BaseVisitor):
         self._indent += 1
         self._visit_list(node.block)
         self._indent -= 1
+
+    def visitTopLevel(self, node):
+        self.visit(node.block)

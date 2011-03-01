@@ -17,7 +17,7 @@ class Parser(object):
         return self.tokens[0].type
 
     def parse(self):
-        self.ast = self.parse_block()
+        self.ast = TopLevel(self.parse_block())
         assert len(self.tokens) == 0
         return True
 
@@ -25,8 +25,8 @@ class Parser(object):
         block = []
         while self.tokens:
             expr = self.parse_expression()
-            assert expr, map(str, self.tokens)
             self._eat_token('tok_semicolon')
+            assert expr
             expr = ExprStatement(expr)
             block.append(expr)
         return BlockStatement(block)
