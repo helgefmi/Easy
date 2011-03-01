@@ -10,4 +10,7 @@ printf(
 printf("%d\n" strcmp("AKKI" strstr("I SAY EKKI!" "EKKI")));
 printf("%d\n" strcmp("OKKI" strstr("I SAY EKKI!" "EKKI")));
 
-printf("%d\n" 5);
+printf("%d of \"%s\" is \"" 5 "Lorem ipsum dolor sit amet");
+fflush(0);
+write(0 "Lorem ipsum dolor sit amet" 5);
+printf("\"\n");

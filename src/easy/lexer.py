@@ -51,6 +51,8 @@ class Lexer(object):
         if self.input[0] == '"':
             i = 1
             while i < len(self.input) and self.input[i] != '"':
+                if self.input[i] == '\\' and self.input[i + 1] == '"':
+                    i += 1
                 i += 1
             string, self.input = self.input[1:i], self.input[i + 1:]
             self.tokens.append(Token('tok_string', string))
