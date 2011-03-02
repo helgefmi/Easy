@@ -27,7 +27,9 @@ class Parser(object):
     def parse(self):
         toplevel = []
         while self.tokens:
-            toplevel.append(self.parse_function())
+            function = self.parse_function()
+            assert function, map(str, self.tokens)[:10]
+            toplevel.append(function)
         self.ast = TopLevel(toplevel)
         return True
 
@@ -51,7 +53,9 @@ class Parser(object):
         args = []
         if self._eat_if_token('tok_paren_start'):
             while self._curtype() == 'tok_identifier':
-                args.append(self._eat_token('tok_identifier').value)
+                arg = self._eat_token('tok_identifier').value
+                assert arg, map(str, self.tokens)[:10]
+                args.append(arg)
             self._eat_token('tok_paren_end')
 
         block = self.parse_block()
@@ -78,6 +82,8 @@ class Parser(object):
         self._eat_token('tok_paren_start')
         args = []
         while self._curtype() != 'tok_paren_end':
-            args.append(self.parse_expression())
+            expr = self.parse_expression()
+            assert expr, map(str, self.tokens)[:10]
+            args.append(expr)
         self._eat_token('tok_paren_end')
         return FuncCallExpr(func_name, args)

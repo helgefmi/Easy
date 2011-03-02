@@ -16,18 +16,19 @@ class Token(object):
 class Lexer(object):
     KEYWORDS = (
         'def', 'do', 'end',
+        'if', 'then',
     )
     SYMBOLS = (
         ('(', 'tok_paren_start'),
         (')', 'tok_paren_end'),
-        ('<', 'tok_lt'),
-        ('>', 'tok_gt'),
         (';', 'tok_semicolon'),
-        ('=', 'tok_assign'),
-        ('*', 'tok_mul'),
-        ('-', 'tok_sub'),
-        ('/', 'tok_div'),
-        ('+', 'tok_add'),
+        #('<', 'tok_lt'),
+        #('>', 'tok_gt'),
+        #('=', 'tok_assign'),
+        #('*', 'tok_mul'),
+        #('-', 'tok_sub'),
+        #('/', 'tok_div'),
+        #('+', 'tok_add'),
     )
 
     def __init__(self, input, filename=None):
