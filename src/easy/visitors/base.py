@@ -7,4 +7,4 @@ class BaseVisitor(object):
             node.accept(self)
 
     def visit(self, node):
-        node.accept(self)
+        return node.accept(self)

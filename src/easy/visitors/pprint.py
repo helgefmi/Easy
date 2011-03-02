@@ -2,6 +2,16 @@ import sys
 
 from easy.visitors.base import BaseVisitor
 
+class IncIndent(object):
+    def __init__(self, pprint):
+        self._pprint = pprint
+
+    def __enter__(self):
+        self._pprint._indent += 1
+
+    def __exit__(self, *args):
+        self._pprint._indent -= 1
+
 class PPrintVisitor(BaseVisitor):
     def __init__(self, *args, **kwargs):
         super(PPrintVisitor, self).__init__(*args, **kwargs)
@@ -24,9 +34,8 @@ class PPrintVisitor(BaseVisitor):
                                                 len(node.args),
                                                 '' if len(node.args) == 1 else 's')
 
-        self._indent += 1
-        self._visit_list(node.args)
-        self._indent -= 1
+        with IncIndent(self):
+            self._visit_list(node.args)
 
     def visitExprStatement(self, node):
         self.visit(node.expr)
@@ -36,9 +45,8 @@ class PPrintVisitor(BaseVisitor):
         print "Block: %d element%s" % (len(node.block), \
                                        '' if len(node.block) == 1 else 's')
 
-        self._indent += 1
-        self._visit_list(node.block)
-        self._indent -= 1
+        with IncIndent(self):
+            self._visit_list(node.block)
 
     def visitTopLevel(self, node):
         self._visit_list(node.block)
@@ -48,26 +56,22 @@ class PPrintVisitor(BaseVisitor):
         print "FuncDefinition: %s, [%s]" % (node.func_name,
                                             ' '.join(map(str, node.args)))
 
-        self._indent += 1
-        self.visit(node.block)
-        self._indent -= 1
+        with IncIndent(self):
+            self.visit(node.block)
 
     def visitIfStatement(self, node):
         self._print_indent()
         print "IfStatement: cond"
-        self._indent += 1
-        self.visit(node.cond)
-        self._indent -= 1
+        with IncIndent(self):
+            self.visit(node.cond)
 
         self._print_indent()
         print "IfStatement: true_block"
-        self._indent += 1
-        self.visit(node.true_block)
-        self._indent -= 1
+        with IncIndent(self):
+            self.visit(node.true_block)
 
         if node.false_block:
             self._print_indent()
             print "IfStatement: false_block"
-            self._indent += 1
-            self.visit(node.false_block)
-            self._indent -= 1
+            with IncIndent(self):
+                self.visit(node.false_block)

@@ -2,8 +2,16 @@ import re
 
 class Token(object):
     def __init__(self, token_type, token_value=None):
-        self.type = token_type
-        self.value = token_value
+        self._type = token_type
+        self._value = token_value
+
+    @property
+    def type(self):
+        return self._type
+
+    @property
+    def value(self):
+        return self._value
 
     def __str__(self):
         if self.type == 'tok_string':
@@ -33,7 +41,10 @@ class Lexer(object):
 
     def __init__(self, input, filename=None):
         self.input = input
-        self.tokens = []
+        self._tokens = []
+
+    def _append(self, token):
+        self._tokens.append(token)
 
     def lex(self):
         while True:
@@ -44,7 +55,7 @@ class Lexer(object):
                       or self.lex_symbol() or self.lex_string()
             if not result:
                 return False
-        return True
+        return self._tokens
 
     def lex_string(self):
         if self.input[0] == '"':
@@ -54,7 +65,7 @@ class Lexer(object):
                     i += 1
                 i += 1
             string, self.input = self.input[1:i], self.input[i + 1:]
-            self.tokens.append(Token('tok_string', string))
+            self._append(Token('tok_string', string))
             return True
         return False
 
@@ -65,9 +76,9 @@ class Lexer(object):
             self.input = self.input[len(id):]
             if id in self.KEYWORDS:
                 token = Token('tok_%s' % id)
-                self.tokens.append(token)
+                self._append(token)
             else:
-                self.tokens.append(Token('tok_identifier', id))
+                self._append(Token('tok_identifier', id))
             return True
         return False
 
@@ -75,7 +86,7 @@ class Lexer(object):
         for symbol, token in self.SYMBOLS:
             if self.input.startswith(symbol):
                 self.input = self.input[len(symbol):]
-                self.tokens.append(Token(token))
+                self._append(Token(token))
                 return True
         return False
 
@@ -85,6 +96,6 @@ class Lexer(object):
             i += 1
         if i > 0:
             number, self.input = self.input[:i], self.input[i:]
-            self.tokens.append(Token('tok_number', int(number)))
+            self._append(Token('tok_number', int(number)))
             return True
         return False

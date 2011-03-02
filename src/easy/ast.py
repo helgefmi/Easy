@@ -2,7 +2,7 @@
 class ASTNode(object):
     def accept(self, visitor):
         name = self.__class__.__name__
-        getattr(visitor, 'visit%s' % name)(self)
+        return getattr(visitor, 'visit%s' % name)(self)
 
 class Expression(ASTNode):
     pass
