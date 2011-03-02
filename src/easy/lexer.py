@@ -1,9 +1,10 @@
 import re
 
 class Token(object):
-    def __init__(self, token_type, token_value=None):
+    def __init__(self, line, token_type, token_value=None):
         self._type = token_type
         self._value = token_value
+        self._line = line
 
     @property
     def type(self):
@@ -12,6 +13,10 @@ class Token(object):
     @property
     def value(self):
         return self._value
+
+    @property
+    def line(self):
+        return self._line
 
     def __str__(self):
         if self.type == 'tok_string':
@@ -42,60 +47,89 @@ class Lexer(object):
     def __init__(self, input, filename=None):
         self.input = input
         self._tokens = []
+        self._lineno = 1
 
-    def _append(self, token):
+    def _append(self, type, value=None):
+        token = Token(self._lineno, type, value)
         self._tokens.append(token)
+
+    def _strip_whitespace(self):
+        for i, char in enumerate(self.input):
+            if not char.isspace():
+                break
+            if char == '\n':
+                self._lineno += 1
+        self.input = self.input.lstrip()
+
+    def _assert(self, cond, error, lineno=None):
+        lineno = lineno or self._lineno
+        if not cond:
+            print error
+            print 'At line %d' % lineno
+            print 'input[:10] = %s' % repr(self.input[:10])
+            exit(1)
 
     def lex(self):
         while True:
-            self.input = self.input.lstrip()
-            if self.input == '':
+            self._strip_whitespace()
+            if not self.input:
                 break
             result = self.lex_identifier() or self.lex_number() \
                       or self.lex_symbol() or self.lex_string()
-            if not result:
-                return False
+            self._assert(result, 'Unexpected input')
         return self._tokens
 
     def lex_string(self):
-        if self.input[0] == '"':
-            i = 1
-            while i < len(self.input) and self.input[i] != '"':
-                if self.input[i] == '\\' and self.input[i + 1] == '"':
-                    i += 1
-                i += 1
-            string, self.input = self.input[1:i], self.input[i + 1:]
-            self._append(Token('tok_string', string))
-            return True
-        return False
+        if self.input[0] != '"':
+            return False
+
+        self.input = self.input[1:]
+
+        start_lineno = self._lineno
+        last = None
+        for i, char in enumerate(self.input):
+            if char == '\n':
+                self._lineno += 1
+            if char == '"' and last != '\\':
+                break
+            last = char
+        else:
+            self._assert(False, 'Unterminated string literal; expecting "',
+                         start_lineno)
+
+        string, self.input = self.input[:i], self.input[i + 1:]
+        self._append('tok_string', string)
+        return True
 
     def lex_identifier(self):
         match = re.match(r'[a-z][a-zA-Z0-9_]*', self.input)
-        if match:
-            id = match.group()
-            self.input = self.input[len(id):]
-            if id in self.KEYWORDS:
-                token = Token('tok_%s' % id)
-                self._append(token)
-            else:
-                self._append(Token('tok_identifier', id))
-            return True
-        return False
+        if not match:
+            return False
+
+        id = match.group()
+        self.input = self.input[match.end():]
+        if id in self.KEYWORDS:
+            self._append('tok_%s' % id)
+        else:
+            self._append('tok_identifier', id)
+        return True
 
     def lex_symbol(self):
         for symbol, token in self.SYMBOLS:
             if self.input.startswith(symbol):
                 self.input = self.input[len(symbol):]
-                self._append(Token(token))
+                self._append(token)
                 return True
         return False
 
     def lex_number(self):
-        i = 0
-        while i < len(self.input) and self.input[i].isdigit():
-            i += 1
-        if i > 0:
-            number, self.input = self.input[:i], self.input[i:]
-            self._append(Token('tok_number', int(number)))
-            return True
-        return False
+        for i, char in enumerate(self.input):
+            if not char.isdigit():
+                break
+
+        if i == 0:
+            return False
+
+        number, self.input = self.input[:i], self.input[i:]
+        self._append('tok_number', int(number))
+        return True
