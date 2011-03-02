@@ -6,7 +6,9 @@ class Parser(object):
     
     def _assert(self, cond, expected):
         if not cond:
+            lineno = self._tokens[0].lineno if self._tokens else -1
             print expected + ", got %s" % cond
+            print "Probably line %d" % lineno
             print "tokens[:10] = %s" % map(str, self._tokens)[:10]
             exit(1)
 
@@ -28,7 +30,7 @@ class Parser(object):
             return self._eat_token(what)
 
     def _curtype(self):
-        return self._tokens[0].type
+        return self._tokens[0].type if self._tokens else None
 
     def parse(self):
         toplevel = []

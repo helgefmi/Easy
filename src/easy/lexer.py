@@ -1,10 +1,10 @@
 import re
 
 class Token(object):
-    def __init__(self, line, token_type, token_value=None):
+    def __init__(self, lineno, token_type, token_value=None):
         self._type = token_type
         self._value = token_value
-        self._line = line
+        self._lineno = lineno
 
     @property
     def type(self):
@@ -15,8 +15,8 @@ class Token(object):
         return self._value
 
     @property
-    def line(self):
-        return self._line
+    def lineno(self):
+        return self._lineno
 
     def __str__(self):
         if self.type == 'tok_string':
