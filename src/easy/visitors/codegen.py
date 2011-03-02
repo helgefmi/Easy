@@ -36,12 +36,17 @@ class CodeGenVisitor(BaseVisitor):
         self.output = ''
         self.regs = RegisterStack()
         self._string_labels = {}
+        self._label_no = 0
 
     def _get_string_label(self, string):
         if string in self._string_labels:
             return self._string_labels[string]
         self._string_labels[string] = 'LC%d' % len(self._string_labels)
         return self._string_labels[string]
+
+    def _get_label(self):
+        self._label_no += 1
+        return 'L%d' % self._label_no
 
     def _omit_rodata(self):
         self.omit('.section .rodata')
@@ -100,6 +105,19 @@ class CodeGenVisitor(BaseVisitor):
 
         self.omit('leave')
         self.omit('ret')
+
+    def visitIfStatement(self, node):
+        self.visit(node.cond)
+        cond = self.regs.pop()
+        L1, L2 = [self._get_label() for _ in range(2)]
+        self.omit('test %s, %s' % (cond, cond))
+        self.omit('jz .%s' % L1)
+        self.visit(node.true_block)
+        self.omit('jmp .%s' % L2)
+        self.omit('.%s:' % L1)
+        if node.false_block:
+            self.visit(node.false_block)
+        self.omit('.%s:' % L2)
 
     def visitTopLevel(self, node):
         self.omit('.text')

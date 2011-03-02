@@ -1,18 +1,25 @@
 def test3 do
-    printf("Press a key!\n");
-    printf("%d\n" getchar());
+    printf("before if!\n")
+    if strcmp("b" "a") then
+        printf("yes\n")
+        printf("indeed\n")
+    else
+        printf("no\n")
+        printf("not at all.\n")
+    end
+    printf("after if\n")
 end
 
 def test2 do
-    write(0 "Lorem ipsum dolor sit amet" 5);
-    printf("\"\n");
-    test3();
+    write(0 "Lorem ipsum dolor sit amet" 5)
+    printf("\"\n")
+    test3()
 end
 
 def test do
-    printf("%d of \"%s\" is \"" 5 "Lorem ipsum dolor sit amet");
-    fflush(0);
-    test2();
+    printf("%d of \"%s\" is \"" 5 "Lorem ipsum dolor sit amet")
+    fflush(0)
+    test2()
 end
 
 def main(a b) do
@@ -23,10 +30,10 @@ def main(a b) do
         "hehe"
         atoi("252")
         strcmp("AKKI" strstr("I SAY EKKI!" "EKKI"))
-    );
+    )
 
-    printf("%d\n" strcmp("AKKI" strdup(strstr("I SAY EKKI!" "EKKI"))));
-    printf("%d\n" strcmp("OKKI" strstr("I SAY EKKI!" "EKKI")));
+    printf("%d\n" strcmp("AKKI" strdup(strstr("I SAY EKKI!" "EKKI"))))
+    printf("%d\n" strcmp("OKKI" strstr("I SAY EKKI!" "EKKI")))
 
-    test();
+    test()
 end

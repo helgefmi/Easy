@@ -33,7 +33,8 @@ class PPrintVisitor(BaseVisitor):
 
     def visitBlockStatement(self, node):
         self._print_indent()
-        print "Block: %d elements" % len(node.block)
+        print "Block: %d element%s" % (len(node.block), \
+                                       '' if len(node.block) == 1 else 's')
 
         self._indent += 1
         self._visit_list(node.block)
@@ -50,3 +51,23 @@ class PPrintVisitor(BaseVisitor):
         self._indent += 1
         self.visit(node.block)
         self._indent -= 1
+
+    def visitIfStatement(self, node):
+        self._print_indent()
+        print "IfStatement: cond"
+        self._indent += 1
+        self.visit(node.cond)
+        self._indent -= 1
+
+        self._print_indent()
+        print "IfStatement: true_block"
+        self._indent += 1
+        self.visit(node.true_block)
+        self._indent -= 1
+
+        if node.false_block:
+            self._print_indent()
+            print "IfStatement: false_block"
+            self._indent += 1
+            self.visit(node.false_block)
+            self._indent -= 1
