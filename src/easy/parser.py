@@ -4,6 +4,12 @@ class Parser(object):
     def __init__(self, tokens):
         self._tokens = tokens
     
+    def _assert(self, cond, expected):
+        if not cond:
+            print expected + ", got %s" % cond
+            print "tokens[:10] = %s" % map(str, self._tokens)[:10]
+            exit(1)
+
     def _next_tokens(self, *args):
         if len(args) > len(self._tokens):
             return False
@@ -28,7 +34,7 @@ class Parser(object):
         toplevel = []
         while self._tokens:
             function = self.parse_function()
-            assert function, map(str, self._tokens)[:10]
+            self._assert(function, "Expected function")
             toplevel.append(function)
         return TopLevel(toplevel)
 
@@ -36,7 +42,13 @@ class Parser(object):
         return self.parse_string() or self.parse_number() or self.parse_funccall()
 
     def parse_statement(self):
-        return self.parse_if() or ExprStatement(self.parse_expression())
+        astnode = self.parse_if()
+        if astnode:
+            return astnode
+
+        expr = self.parse_expression()
+        if expr:
+            return ExprStatement(expr)
 
     def parse_number(self):
         token = self._eat_if_token('tok_number')
@@ -71,7 +83,7 @@ class Parser(object):
         if self._eat_if_token('tok_paren_start'):
             while self._curtype() == 'tok_identifier':
                 arg = self._eat_token('tok_identifier').value
-                assert arg, map(str, self._tokens)[:10]
+                self._assert(arg, 'Expected identifier')
                 args.append(arg)
             self._eat_token('tok_paren_end')
 
@@ -87,7 +99,7 @@ class Parser(object):
         block = []
         while True:
             expr = self.parse_statement() or self.parse_expression()
-            assert expr, map(str, self._tokens)[:10]
+            self._assert(expr, 'Expected statement')
             self._eat_if_token('tok_semicolon')
             block.append(expr)
             if self._curtype() in end_tokens:
@@ -103,7 +115,7 @@ class Parser(object):
         args = []
         while self._curtype() != 'tok_paren_end':
             expr = self.parse_expression()
-            assert expr, map(str, self._tokens)[:10]
+            self._assert(expr, 'Expected expression')
             args.append(expr)
         self._eat_token('tok_paren_end')
         return FuncCallExpr(func_name, args)

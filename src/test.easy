@@ -24,7 +24,7 @@ def test do
     test2()
 end
 
-def main(a b) do
+def main do
     printf(
         "hei: %d %d (%s) / %d %d\n"
         strlen("a")
