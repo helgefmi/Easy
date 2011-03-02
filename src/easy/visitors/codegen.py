@@ -52,8 +52,7 @@ class CodeGenVisitor(BaseVisitor):
         self.omit('.section .rodata')
 
         for string, label in self._string_labels.iteritems():
-            self.omit('.%s:' % label)
-            self.omit('.string "%s"' % string)
+            self.omit('.%s:\t.string "%s"' % (label, string))
 
     def omit(self, line):
         if line and line[-1] != ':' and sum(1 for x in ('.globl',) if line.startswith(x)) == 0:
@@ -107,10 +106,14 @@ class CodeGenVisitor(BaseVisitor):
         self.omit('ret')
 
     def visitIfStatement(self, node):
-        self.visit(node.cond)
-        cond = self.regs.pop()
         L1, L2 = [self._get_label() for _ in range(2)]
-        self.omit('test %s, %s' % (cond, cond))
+        self.visit(node.cond)
+        reg = self.regs.pop()
+        # TODO: This is obviously not neccessary
+        if not reg.startswith('%'):
+            old, reg = reg, self.regs.push()
+            self.omit('movl %s, %s' % (old, reg))
+        self.omit('test %s, %s' % (reg, reg))
         self.omit('jz .%s' % L1)
         self.visit(node.true_block)
         self.omit('jmp .%s' % L2)

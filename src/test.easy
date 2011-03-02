@@ -1,11 +1,13 @@
 def test3 do
     printf("before if!\n")
-    if strcmp("b" "a") then
-        printf("yes\n")
-        printf("indeed\n")
+    if strcmp("a" "a") then
+        printf("1\n")
     else
-        printf("no\n")
-        printf("not at all.\n")
+        if 1 then
+            printf("2\n")
+        else
+            printf("3\n")
+        end
     end
     printf("after if\n")
 end
