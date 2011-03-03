@@ -75,3 +75,10 @@ class PPrintVisitor(BaseVisitor):
             print "IfStatement: false_block"
             with IncIndent(self):
                 self.visit(node.false_block)
+
+    def visitBinaryOpExpr(self, node):
+        self._print_indent()
+        print "BinaryOpExpr: %s" % node.operator
+        with IncIndent(self):
+            self.visit(node.lhs)
+            self.visit(node.rhs)

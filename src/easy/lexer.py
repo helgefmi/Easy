@@ -35,13 +35,13 @@ class Lexer(object):
         ('(', 'tok_paren_start'),
         (')', 'tok_paren_end'),
         (';', 'tok_semicolon'),
-        #('<', 'tok_lt'),
-        #('>', 'tok_gt'),
-        #('=', 'tok_assign'),
-        #('*', 'tok_mul'),
-        #('-', 'tok_sub'),
-        #('/', 'tok_div'),
-        #('+', 'tok_add'),
+        #('<', 'tok_binary_op'),
+        #('>', 'tok_binary_op'),
+        ('*', 'tok_binary_op'),
+        ('-', 'tok_binary_op'),
+        ('/', 'tok_binary_op'),
+        ('+', 'tok_binary_op'),
+        ('=', 'tok_assign'),
     )
 
     def __init__(self, input, filename=None):
@@ -118,7 +118,7 @@ class Lexer(object):
         for symbol, token in self.SYMBOLS:
             if self.input.startswith(symbol):
                 self.input = self.input[len(symbol):]
-                self._append(token)
+                self._append(token, symbol)
                 return True
         return False
 

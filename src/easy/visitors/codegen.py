@@ -42,6 +42,12 @@ class CodeGenVisitor(BaseVisitor):
         self._output = ''
         self._string_labels = {}
         self._label_no = 0
+        self._binary_op_instructions = {
+            '*': 'imul',
+            '-': 'subl',
+            '/': 'idiv',
+            '+': 'addl',
+        }
 
     def _get_string_label(self, string):
         if string in self._string_labels:
@@ -120,7 +126,7 @@ class CodeGenVisitor(BaseVisitor):
             old, reg = reg, self._regs.push()
             self.omit('movl %s, %s' % (old, reg))
 
-        self.omit('test %s, %s' % (reg, reg))
+        self.omit('testl %s, %s' % (reg, reg))
         self.omit('jz .%s' % L1)
         self.visit(node.true_block)
         self.omit('jmp .%s' % L2)
@@ -130,6 +136,16 @@ class CodeGenVisitor(BaseVisitor):
             self.visit(node.false_block)
 
         self.omit('.%s:' % L2)
+
+    def visitBinaryOpExpr(self, node):
+        self.visit(node.lhs)
+        self.visit(node.rhs)
+        rreg = self._regs.pop()
+        lreg = self._regs.pop()
+
+        instruction = self._binary_op_instructions[node.operator]
+        self.omit('%s %s, %s' % (instruction, rreg, lreg))
+        self._regs.push(lreg)
 
     def visitTopLevel(self, node):
         self.omit('.text')

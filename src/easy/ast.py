@@ -25,6 +25,15 @@ class NumberExpr(Expression):
     def __str__(self):
         return '"%s"' % self.number
 
+class BinaryOpExpr(Expression):
+    def __init__(self, operator, lhs, rhs):
+        self.operator = operator
+        self.lhs = lhs
+        self.rhs = rhs
+
+    def __str__(self):
+        return '"%s %s %s"' % (self.lhs, self.operator, self.rhs)
+
 class FuncCallExpr(Expression):
     def __init__(self, func_name, args):
         self.func_name = func_name

@@ -41,7 +41,13 @@ class Parser(object):
         return TopLevel(toplevel)
 
     def parse_expression(self):
-        return self.parse_string() or self.parse_number() or self.parse_funccall()
+        lhs = self.parse_string() or self.parse_number() or \
+                self.parse_funccall() or self.parse_paren_expression()
+        if self._curtype() == 'tok_binary_op':
+            operator = self._eat_token('tok_binary_op').value
+            rhs = self.parse_expression()
+            return BinaryOpExpr(operator, lhs, rhs)
+        return lhs
 
     def parse_statement(self):
         astnode = self.parse_if()
@@ -51,6 +57,13 @@ class Parser(object):
         expr = self.parse_expression()
         if expr:
             return ExprStatement(expr)
+
+    def parse_paren_expression(self):
+        if not self._eat_if_token('tok_paren_start'):
+            return False
+        expr = self.parse_expression()
+        self._eat_token('tok_paren_end')
+        return expr
 
     def parse_number(self):
         token = self._eat_if_token('tok_number')

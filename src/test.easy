@@ -19,12 +19,6 @@ def test2 do
 end
 
 def test do
-    printf("%d of \"%s\" is \"" 5 "Lorem ipsum dolor sit amet")
-    fflush(0)
-    test2()
-end
-
-def main do
     printf(
         "hei: %d %d (%s) / %d %d\n"
         strlen("a")
@@ -37,5 +31,13 @@ def main do
     printf("%d\n" strcmp("AKKI" strdup(strstr("I SAY EKKI!" "EKKI"))))
     printf("%d\n" strcmp("OKKI" strstr("I SAY EKKI!" "EKKI")))
 
+    printf("%d of \"%s\" is \"" 5 "Lorem ipsum dolor sit amet")
+    fflush(0)
+
+    test2()
+end
+
+def main do
     test()
+    printf("%d\n" ((atoi("1024") * 1024) * 1024))
 end
