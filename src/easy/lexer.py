@@ -34,6 +34,8 @@ class Lexer(object):
     SYMBOLS = (
         ('>=', 'tok_binary_op'),
         ('<=', 'tok_binary_op'),
+        ('==', 'tok_binary_op'),
+        ('!=', 'tok_binary_op'),
         ('(',  'tok_paren_start'),
         (')',  'tok_paren_end'),
         (';',  'tok_semicolon'),

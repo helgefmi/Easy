@@ -56,9 +56,11 @@ class CodeGenVisitor(BaseVisitor):
             '<': 'setl',
             '<=': 'setle',
             '>=': 'setge',
+            '==': 'sete',
+            '!=': 'setne',
         }
         self._arithmetic_instructions = ('imul', 'subl', 'idiv', 'addl',)
-        self._compare_instructions = ('setg', 'setl', 'setle', 'setge')
+        self._compare_instructions = ('setg', 'setl', 'setle', 'setge', 'sete', 'setne')
 
     def _get_string_label(self, string):
         if string in self._string_labels:
@@ -151,11 +153,10 @@ class CodeGenVisitor(BaseVisitor):
     def visitBinaryOpExpr(self, node):
         self.visit(node.lhs)
         self.visit(node.rhs)
-
-        instruction = self._binary_op_instructions[node.operator]
         rreg = self._regs.pop()
         lreg = self._regs.pop()
 
+        instruction = self._binary_op_instructions[node.operator]
         if instruction in self._arithmetic_instructions:
             self.omit('%s %s, %s' % (instruction, rreg, lreg))
             self._regs.push(lreg)

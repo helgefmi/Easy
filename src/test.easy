@@ -60,6 +60,18 @@ def test_compare do
     else
         puts("ERROR. 2 >= 2")
     end
+
+    if (atoi("55") == 55) then
+        puts("OK. 55 == 55")
+    else
+        puts("ERROR. 55 == 55")
+    end
+
+    if (atoi("66") != 66) then
+        puts("ERROR. 66 != 66")
+    else
+        puts("OK. 66 != 66")
+    end
 end
 
 def test_arithmetic do
