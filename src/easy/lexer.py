@@ -36,16 +36,15 @@ class Lexer(object):
         ('<=', 'tok_binary_op'),
         ('==', 'tok_binary_op'),
         ('!=', 'tok_binary_op'),
-        ('(',  'tok_paren_start'),
-        (')',  'tok_paren_end'),
-        (';',  'tok_semicolon'),
         ('<',  'tok_binary_op'),
         ('>',  'tok_binary_op'),
         ('*',  'tok_binary_op'),
         ('-',  'tok_binary_op'),
         ('/',  'tok_binary_op'),
         ('+',  'tok_binary_op'),
-        ('=',  'tok_assign'),
+        ('(',  'tok_paren_start'),
+        (')',  'tok_paren_end'),
+        (';',  'tok_semicolon'),
     )
 
     def __init__(self, input, filename=None):

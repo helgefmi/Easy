@@ -11,7 +11,7 @@ def test_if do
         puts("ERROR. 1")
     end
 
-    if ((atoi("5") * 5) < 25) then
+    if (atoi("5") * 5) < 25 then
         puts("ERROR. 5 * 5 < 25")
     else
         puts("OK. 5 * 5 < 25")
@@ -37,37 +37,37 @@ def test_functions do
 end
 
 def test_compare do
-    if (atoi("1") < 2) then
+    if atoi("1") < 2 then
         puts("OK. 1 < 2")
     else
         puts("ERROR. 1 < 2")
     end
 
-    if (atoi("1") > 2) then
+    if atoi("1") > 2 then
         puts("ERROR. 1 > 2")
     else
         puts("OK. 1 > 2")
     end
 
-    if (atoi("2") > 2) then
+    if atoi("2") > 2 then
         puts("ERROR. 2 > 2")
     else
         puts("OK. 2 > 2")
     end
 
-    if (atoi("2") >= 2) then
+    if atoi("2") >= 2 then
         puts("OK. 2 >= 2")
     else
         puts("ERROR. 2 >= 2")
     end
 
-    if (atoi("55") == 55) then
+    if atoi("55") == 55 then
         puts("OK. 55 == 55")
     else
         puts("ERROR. 55 == 55")
     end
 
-    if (atoi("66") != 66) then
+    if atoi("66") != 66 then
         puts("ERROR. 66 != 66")
     else
         puts("OK. 66 != 66")
@@ -105,6 +105,12 @@ def test_crazy do
     fflush(0)
 end
 
+def test_constant_folding do
+    printf("5 * 5 = %d\n" (5 * 5))
+    printf("9 > 5 = %d\n" (9 > 5))
+    printf("9 <= 5 = %d\n" (9 <= 5))
+end
+
 def test do
     puts("test_functions()")
     test_functions()
@@ -114,6 +120,9 @@ def test do
 
     puts("\ntest_binop()")
     test_binop()
+
+    puts("\ntest_constant_folding()")
+    test_constant_folding()
 end
 
 def main do

@@ -1,3 +1,4 @@
+from easy.visitors.constant_folding import ConstantFoldingVisitor
 from easy.visitors.pprint import PPrintVisitor
 from easy.visitors.codegen import CodeGenVisitor
 
@@ -9,6 +10,7 @@ class Compiler(object):
         return visitor.visit(self._ast)
 
     def compile(self):
+        self._do_pass(ConstantFoldingVisitor(self))
         self._do_pass(PPrintVisitor(self))
 
         codegen_visitor = CodeGenVisitor(self)
