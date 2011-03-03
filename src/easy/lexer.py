@@ -32,16 +32,18 @@ class Lexer(object):
         'if', 'then', 'else',
     )
     SYMBOLS = (
-        ('(', 'tok_paren_start'),
-        (')', 'tok_paren_end'),
-        (';', 'tok_semicolon'),
-        #('<', 'tok_binary_op'),
-        #('>', 'tok_binary_op'),
-        ('*', 'tok_binary_op'),
-        ('-', 'tok_binary_op'),
-        ('/', 'tok_binary_op'),
-        ('+', 'tok_binary_op'),
-        ('=', 'tok_assign'),
+        ('>=', 'tok_binary_op'),
+        ('<=', 'tok_binary_op'),
+        ('(',  'tok_paren_start'),
+        (')',  'tok_paren_end'),
+        (';',  'tok_semicolon'),
+        ('<',  'tok_binary_op'),
+        ('>',  'tok_binary_op'),
+        ('*',  'tok_binary_op'),
+        ('-',  'tok_binary_op'),
+        ('/',  'tok_binary_op'),
+        ('+',  'tok_binary_op'),
+        ('=',  'tok_assign'),
     )
 
     def __init__(self, input, filename=None):

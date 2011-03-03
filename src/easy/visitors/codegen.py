@@ -5,8 +5,9 @@ class RegisterStack(object):
     def __init__(self):
         self._all_regs = ['%eax', '%ebx', '%ecx', '%edx', '%esi', '%edi']
         self._free_regs = self._all_regs[:]
-        self._caller_save = ['%eax', '%ecx', '%edx']
-        self._callee_save = ['%ebx', '%esi', '%edi'] # ebp gets pushed manually
+        self._caller_save = ('%eax', '%ecx', '%edx')
+        self._callee_save = ('%ebx', '%esi', '%edi') # ebp gets pushed manually
+        self._byte_regs = ('%eax', '#tbx', '%ecx', '%edx')
         self._stack = []
 
     def pop(self):
@@ -14,6 +15,11 @@ class RegisterStack(object):
         if reg in self._all_regs:
             self._free_regs.append(reg)
         return reg
+
+    def push_byte(self):
+        available = [reg for reg in self._byte_regs if reg in self._byte_regs]
+        self.push(available[0])
+        return available[0]
 
     def push(self, item=None):
         if item is None:
@@ -45,9 +51,14 @@ class CodeGenVisitor(BaseVisitor):
         self._binary_op_instructions = {
             '*': 'imul',
             '-': 'subl',
-            '/': 'idiv',
             '+': 'addl',
+            '>': 'setg',
+            '<': 'setl',
+            '<=': 'setle',
+            '>=': 'setge',
         }
+        self._arithmetic_instructions = ('imul', 'subl', 'idiv', 'addl',)
+        self._compare_instructions = ('setg', 'setl', 'setle', 'setge')
 
     def _get_string_label(self, string):
         if string in self._string_labels:
@@ -140,12 +151,23 @@ class CodeGenVisitor(BaseVisitor):
     def visitBinaryOpExpr(self, node):
         self.visit(node.lhs)
         self.visit(node.rhs)
+
+        instruction = self._binary_op_instructions[node.operator]
         rreg = self._regs.pop()
         lreg = self._regs.pop()
 
-        instruction = self._binary_op_instructions[node.operator]
-        self.omit('%s %s, %s' % (instruction, rreg, lreg))
-        self._regs.push(lreg)
+        if instruction in self._arithmetic_instructions:
+            self.omit('%s %s, %s' % (instruction, rreg, lreg))
+            self._regs.push(lreg)
+        elif instruction in self._compare_instructions:
+            self.omit('cmpl %s, %s' % (rreg, lreg))
+            reg = self._regs.push_byte()
+            loreg = '%' + reg[2] + 'l'
+
+            self.omit('%s %s' % (instruction, loreg))
+            self.omit('movzbl %s, %s' % (loreg, reg))
+        else:
+            assert False
 
     def visitTopLevel(self, node):
         self.omit('.text')

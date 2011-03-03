@@ -1,24 +1,82 @@
-def test3 do
-    printf("before if!\n")
-    if strcmp("a" "a") then
-        printf("1\n")
+def test_if do
+    if atoi("0") then
+        puts("ERROR. 0")
     else
-        if 1 then
-            printf("2\n")
-        else
-            printf("3\n")
-        end
+        puts("OK. 0")
     end
-    printf("after if\n")
+
+    if atoi("1") then
+        puts("OK. 1")
+    else
+        puts("ERROR. 1")
+    end
+
+    if ((atoi("5") * 5) < 25) then
+        puts("ERROR. 5 * 5 < 25")
+    else
+        puts("OK. 5 * 5 < 25")
+    end
 end
 
-def test2 do
-    write(0 "Lorem ipsum dolor sit amet" 5)
-    printf("\"\n")
-    test3()
+def test_functions4 do
+    printf("SUCCESS")
 end
 
-def test do
+def test_functions3 do
+    test_functions4()
+end
+
+def test_functions2 do
+    test_functions3()
+end
+
+def test_functions do
+    printf("Trying to reach test_functions4.. ")
+    test_functions2()
+    puts("")
+end
+
+def test_compare do
+    if (atoi("1") < 2) then
+        puts("OK. 1 < 2")
+    else
+        puts("ERROR. 1 < 2")
+    end
+
+    if (atoi("1") > 2) then
+        puts("ERROR. 1 > 2")
+    else
+        puts("OK. 1 > 2")
+    end
+
+    if (atoi("2") > 2) then
+        puts("ERROR. 2 > 2")
+    else
+        puts("OK. 2 > 2")
+    end
+
+    if (atoi("2") >= 2) then
+        puts("OK. 2 >= 2")
+    else
+        puts("ERROR. 2 >= 2")
+    end
+end
+
+def test_arithmetic do
+    printf("50 + 8 = %d\n" (atoi("50") + 8))
+    printf("50 * 8 = %d\n" (atoi("50") * 8))
+    printf("50 - 8 = %d\n" (atoi("50") - 8))
+end
+
+def test_binop do
+    puts("test_compare()")
+    test_compare()
+
+    puts("test_arithmetic()")
+    test_arithmetic()
+end
+
+def test_crazy do
     printf(
         "hei: %d %d (%s) / %d %d\n"
         strlen("a")
@@ -33,11 +91,19 @@ def test do
 
     printf("%d of \"%s\" is \"" 5 "Lorem ipsum dolor sit amet")
     fflush(0)
+end
 
-    test2()
+def test do
+    puts("test_functions()")
+    test_functions()
+
+    puts("\ntest_if()")
+    test_if()
+
+    puts("\ntest_binop()")
+    test_binop()
 end
 
 def main do
     test()
-    printf("%d\n" ((atoi("1024") * 1024) * 1024))
 end
