@@ -1,3 +1,21 @@
+def test_functions4 do
+    printf("SUCCESS")
+end
+
+def test_functions3 do
+    test_functions4()
+end
+
+def test_functions2 do
+    test_functions3()
+end
+
+def test_functions do
+    printf("Trying to reach test_functions4.. ")
+    test_functions2()
+    puts("")
+end
+
 def test_if do
     if atoi("0") then
         puts("ERROR. 0")
@@ -16,24 +34,6 @@ def test_if do
     else
         puts("OK. 5 * 5 < 25")
     end
-end
-
-def test_functions4 do
-    printf("SUCCESS")
-end
-
-def test_functions3 do
-    test_functions4()
-end
-
-def test_functions2 do
-    test_functions3()
-end
-
-def test_functions do
-    printf("Trying to reach test_functions4.. ")
-    test_functions2()
-    puts("")
 end
 
 def test_compare do
@@ -111,6 +111,14 @@ def test_constant_folding do
     printf("9 <= 5 = %d\n" (9 <= 5))
 end
 
+def print_num(a) do
+    printf("%d\n" a)
+end
+
+def test_function_arguments do
+    print_num(5)
+end
+
 def test do
     puts("test_functions()")
     test_functions()
@@ -123,6 +131,9 @@ def test do
 
     puts("\ntest_constant_folding()")
     test_constant_folding()
+
+    puts("\ntest_function_arguments()")
+    test_function_arguments()
 end
 
 def main do

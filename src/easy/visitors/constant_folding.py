@@ -56,3 +56,6 @@ class ConstantFoldingVisitor(BaseVisitor):
                                      rconstant.number)
                 val = int(eval(expr))
                 return NumberExpr(val)
+
+    def visitIdExpr(self, node):
+        pass

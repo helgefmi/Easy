@@ -176,3 +176,7 @@ class CodeGenVisitor(BaseVisitor):
         self._omit_rodata()
 
         return self._output
+
+    def visitIdExpr(self, node):
+        return self._regs.push('$1')
+        return node.symtable[node.id].curloc

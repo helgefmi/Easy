@@ -82,3 +82,7 @@ class PPrintVisitor(BaseVisitor):
         with IncIndent(self):
             self.visit(node.lhs)
             self.visit(node.rhs)
+    
+    def visitIdExpr(self, node):
+        self._print_indent()
+        print "Identifier: %s" % node.id

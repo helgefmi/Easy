@@ -22,7 +22,7 @@ class Parser(object):
 
     def _eat_token(self, what):
         token, self._tokens = self._tokens[0], self._tokens[1:]
-        assert token.type == what, "Expected %s, got %s." % (what, token.type)
+        self._assert(token.type == what, "Expected %s, got %s." % (what, token.type))
         return token
 
     def _eat_if_token(self, what):
@@ -42,11 +42,12 @@ class Parser(object):
 
     def parse_expression(self):
         lhs = self.parse_string() or self.parse_number() or \
-                self.parse_funccall() or self.parse_paren_expression()
+                self.parse_funccall() or self.parse_identifier() or \
+                self.parse_paren_expression()
         if self._curtype() == 'tok_binary_op':
-            operator = self._eat_token('tok_binary_op').value
+            token = self._eat_token('tok_binary_op')
             rhs = self.parse_expression()
-            return BinaryOpExpr(operator, lhs, rhs)
+            return BinaryOpExpr(token.value, lhs, rhs)
         return lhs
 
     def parse_statement(self):
@@ -73,6 +74,10 @@ class Parser(object):
         token = self._eat_if_token('tok_string')
         return StringExpr(token.value) if token else False
 
+    def parse_identifier(self):
+        token = self._eat_if_token('tok_identifier')
+        return IdExpr(token.value) if token else False
+
     def parse_if(self):
         if not self._eat_if_token('tok_if'):
             return False
@@ -92,20 +97,20 @@ class Parser(object):
         if not self._eat_if_token('tok_def'):
             return False
         
-        func_name = self._eat_token('tok_identifier').value
+        func_name_token = self._eat_token('tok_identifier')
 
         args = []
         if self._eat_if_token('tok_paren_start'):
             while self._curtype() == 'tok_identifier':
-                arg = self._eat_token('tok_identifier').value
-                self._assert(arg, 'Expected identifier')
-                args.append(arg)
+                arg_token = self._eat_token('tok_identifier')
+                self._assert(arg_token, 'Expected identifier')
+                args.append(arg_token.value)
             self._eat_token('tok_paren_end')
 
         self._eat_token('tok_do')
         block = self.parse_block(end_tokens='tok_end')
         self._eat_token('tok_end')
-        return FuncDefinition(func_name, args, block)
+        return FuncDefinition(func_name_token.value, args, block)
 
     def parse_block(self, end_tokens):
         if isinstance(end_tokens, str):
@@ -125,7 +130,7 @@ class Parser(object):
         if not self._next_tokens('tok_identifier', 'tok_paren_start'):
             return False
 
-        func_name = self._eat_token('tok_identifier')
+        func_name_token = self._eat_token('tok_identifier')
         self._eat_token('tok_paren_start')
         args = []
         while self._curtype() != 'tok_paren_end':
@@ -133,4 +138,4 @@ class Parser(object):
             self._assert(expr, 'Expected expression')
             args.append(expr)
         self._eat_token('tok_paren_end')
-        return FuncCallExpr(func_name, args)
+        return FuncCallExpr(func_name_token.value, args)

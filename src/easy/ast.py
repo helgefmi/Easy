@@ -7,13 +7,6 @@ class ASTNode(object):
     def is_leaf_node(self):
         return isinstance(self, StringExpr) or isinstance(self, NumberExpr)
 
-    def _set_parent(self, *args):
-        for node in args:
-            if isinstance(node, list):
-                self._set_parent(*node)
-            elif node is not None:
-                node.parent = self
-
 class Expression(ASTNode):
     pass
 
@@ -40,7 +33,6 @@ class BinaryOpExpr(Expression):
         self.operator = operator
         self.lhs = lhs
         self.rhs = rhs
-        self._set_parent(lhs, rhs)
 
     def __str__(self):
         return '"%s %s %s"' % (self.lhs, self.operator, self.rhs)
@@ -49,17 +41,22 @@ class FuncCallExpr(Expression):
     def __init__(self, func_name, args):
         self.func_name = func_name
         self.args = args
-        self._set_parent(args)
 
     def __str__(self):
         return '%s(%s)' % (self.func_name,
                            ' '.join(str(arg) for arg in self.args))
 
+class IdExpr(Expression):
+    def __init__(self, id):
+        self.id = id
+
+    def __str__(self):
+        return self.id
+
 # Statements
 class BlockStatement(Statement):
     def __init__(self, block):
         self.block = block
-        self._set_parent(block)
 
     def __str__(self):
         return '; '.join(map(str, self.block)) + ';'
@@ -67,7 +64,6 @@ class BlockStatement(Statement):
 class ExprStatement(Statement):
     def __init__(self, expr):
         self.expr = expr
-        self._set_parent(expr)
 
     def __str__(self):
         return str(self.expr)
@@ -77,7 +73,6 @@ class IfStatement(Statement):
         self.cond = cond
         self.true_block = true_block
         self.false_block = false_block
-        self._set_parent(cond, true_block, false_block)
 
     def __str__(self):
         ret = 'if %s then %s' % (str(self.cond), str(self.true_block))
@@ -92,12 +87,10 @@ class FuncDefinition(ASTNode):
         self.func_name = func_name
         self.args = args
         self.block = block
-        self._set_parent(block)
 
 class TopLevel(ASTNode):
     def __init__(self, block):
         self.block = block
-        self._set_parent(block)
 
     def __str__(self):
         return str(self.block)
