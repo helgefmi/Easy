@@ -111,16 +111,27 @@ def test_constant_folding do
     printf("9 <= 5 = %d\n" (9 <= 5))
 end
 
-def print_num(a) do
-    printf("%d\n" a)
+def print_hex(a b c) do
+    printf("0x%X, 0x%X, %s!\n" a b c)
 end
 
 def test_function_arguments do
-    printf("Is 5? ")
-    print_num(5)
+    puts("0x1234567, 0xDEADB0B, bake kake?")
+    print_hex(19088743 233495307 "bake kake")
+    puts("0x13579BD, 0x2468ACE, kakemums?")
+    print_hex(20281789 38177486 "kakemums")
+end
 
-    printf("Is 99? ")
-    print_num(99)
+def countdown(n) do
+    printf("%d..\n" n)
+    if (n > 1) then
+        countdown(n - 1)
+    end
+end
+
+def test_useful_stuff do
+    puts("countdown(4)")
+    countdown(4)
 end
 
 def test do
@@ -138,13 +149,11 @@ def test do
 
     puts("\ntest_function_arguments()")
     test_function_arguments()
-end
 
-def hm do
-    atoi("123") < atoi("432") < atoi("55") < atoi("123") < atoi("ape") < atoi("5")
+    puts("\ntest_useful_stuff()")
+    test_useful_stuff()
 end
 
 def main do
     test()
-    printf("%d\n" hm())
 end

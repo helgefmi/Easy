@@ -23,8 +23,13 @@ class RegisterStack(object):
         assert constant.startswith('$')
         self._stack.append(constant)
 
+    def push_loc(self, loc):
+        self._stack.append(loc)
+
     def push(self, possible_regs=None):
         possible_regs = possible_regs or self._free_regs
+        assert len(list(possible_regs)) == \
+               sum(1 for x in possible_regs if x.startswith('%'))
         reg = (reg for reg in self._free_regs if reg in possible_regs).next()
         assert self._free_regs.count(reg) == 1
         assert self._stack.count(reg) == 0
@@ -187,5 +192,5 @@ class CodeGenVisitor(BaseVisitor):
         return self._output
 
     def visitIdExpr(self, node):
-        return self._regs.push_constant('$1')
-        return node.symtable[node.id].curloc
+        loc = '%d(%%ebp)' % (8 + (node.var_idx * 4))
+        self.omit('movl %s, %s' % (loc, self._regs.push()))

@@ -39,13 +39,8 @@ class SymbolTable(dict):
                 'strdup': FunctionSymType(),
             }
         self.parent = parent
-
-    def add(self, symbol, type):
-        if symbol in self:
-            print "Unknown symbol '%s'"
-            print str(self)
-            exit(1)
-        self[symbol] = type
+        self.num_variables = 0
+        self.var_idx = {}
 
     def __contains__(self, key):
         if self.has_key(key):
@@ -62,6 +57,23 @@ class SymbolTable(dict):
         if self.parent:
             ret += ' / ' + str(self.parent)
         return ret
+
+    def add(self, symbol, type):
+        if symbol in self:
+            print "Unknown symbol '%s'"
+            print str(self)
+            exit(1)
+        self[symbol] = type
+
+        if isinstance(type, VariableSymType):
+            self.var_idx[symbol] = self.num_variables
+            self.num_variables += 1
+
+    def find(self, symbol):
+        obj = self
+        while not obj.has_key(symbol):
+            obj = obj.parent
+        return obj
 
 class SymbolTableVisitor(BaseVisitor):
     def __init__(self, *args, **kwargs):
@@ -123,3 +135,5 @@ class SymbolTableVisitor(BaseVisitor):
             print "%s is not a variable, it's a %s" % (node.id,
                                                        self._cur_table[node.id])
             exit(1)
+
+        node.var_idx = self._cur_table.find(node.id).var_idx[node.id]
