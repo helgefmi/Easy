@@ -3,11 +3,11 @@ from easy.visitors.base import BaseVisitor
 
 class RegisterStack(object):
     def __init__(self):
-        self._all_regs = ['%eax', '%ebx', '%ecx', '%edx', '%esi', '%edi']
-        self._free_regs = self._all_regs[:]
+        self._all_regs = ('%eax', '%ebx', '%ecx', '%edx', '%esi', '%edi')
+        self._free_regs = list(self._all_regs)
         self._caller_save = ('%eax', '%ecx', '%edx')
         self._callee_save = ('%ebx', '%esi', '%edi') # ebp gets pushed manually
-        self._byte_regs = ('%eax', '#tbx', '%ecx', '%edx')
+        self._byte_regs = ('%eax', '%ebx', '%ecx', '%edx')
         self._stack = []
 
     def pop(self):
@@ -16,16 +16,21 @@ class RegisterStack(object):
             self._free_regs.append(reg)
         return reg
 
-    def push_byte(self):
-        available = [reg for reg in self._byte_regs if reg in self._byte_regs]
-        self.push(available[0])
-        return available[0]
+    def push_bytereg(self):
+        return self.push(self._byte_regs)
 
-    def push(self, item=None):
-        if item is None:
-            item = self._free_regs.pop()
-        self._stack.append(item)
-        return item
+    def push_constant(self, constant):
+        assert constant.startswith('$')
+        self._stack.append(constant)
+
+    def push(self, possible_regs=None):
+        possible_regs = possible_regs or self._free_regs
+        reg = (reg for reg in self._free_regs if reg in possible_regs).next()
+        assert self._free_regs.count(reg) == 1
+        assert self._stack.count(reg) == 0
+        self._free_regs.remove(reg)
+        self._stack.append(reg)
+        return reg
 
     def save_caller_regs(self, codegen):
         regs = [reg for reg in self._caller_save if reg not in self._free_regs]
@@ -80,14 +85,18 @@ class CodeGenVisitor(BaseVisitor):
     def omit(self, line):
         if not (line.startswith('.') or line.endswith(':')):
             line = '\t' + line
+
+        spaces = 60 - len(line)
+        line += (' ' * spaces) + '# free_regs=%s' % self._regs._free_regs
+
         self._output += line + '\n'
 
     def visitNumberExpr(self, node):
-        self._regs.push('$%d' % node.number)
+        self._regs.push_constant('$%d' % node.number)
 
     def visitStringExpr(self, node):
         label = self._get_string_label(node.string)
-        self._regs.push('$.%s' % label)
+        self._regs.push_constant('$.%s' % label)
 
     def visitFuncCallExpr(self, node):
         regs_saved = self._regs.save_caller_regs(self)
@@ -159,10 +168,10 @@ class CodeGenVisitor(BaseVisitor):
         instruction = self._binary_op_instructions[node.operator]
         if instruction in self._arithmetic_instructions:
             self.omit('%s %s, %s' % (instruction, rreg, lreg))
-            self._regs.push(lreg)
+            self._regs.push([lreg])
         elif instruction in self._compare_instructions:
             self.omit('cmpl %s, %s' % (rreg, lreg))
-            reg = self._regs.push_byte()
+            reg = self._regs.push_bytereg()
             loreg = '%' + reg[2] + 'l'
 
             self.omit('%s %s' % (instruction, loreg))
@@ -178,5 +187,5 @@ class CodeGenVisitor(BaseVisitor):
         return self._output
 
     def visitIdExpr(self, node):
-        return self._regs.push('$1')
+        return self._regs.push_constant('$1')
         return node.symtable[node.id].curloc

@@ -116,7 +116,11 @@ def print_num(a) do
 end
 
 def test_function_arguments do
+    printf("Is 5? ")
     print_num(5)
+
+    printf("Is 99? ")
+    print_num(99)
 end
 
 def test do
@@ -136,6 +140,11 @@ def test do
     test_function_arguments()
 end
 
+def hm do
+    atoi("123") < atoi("432") < atoi("55") < atoi("123") < atoi("ape") < atoi("5")
+end
+
 def main do
     test()
+    printf("%d\n" hm())
 end
