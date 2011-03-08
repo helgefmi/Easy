@@ -32,7 +32,7 @@ class ConstantFoldingVisitor(BaseVisitor):
 
     def visitIfStatement(self, node):
         constant = self.visit(node.cond)
-        if not (constant is None or constant.is_leaf_node()):
+        if constant and not constant.is_leaf_node():
             node.cond = constant
 
         self.visit(node.true_block)
@@ -41,11 +41,11 @@ class ConstantFoldingVisitor(BaseVisitor):
 
     def visitBinaryOpExpr(self, node):
         lconstant = self.visit(node.lhs)
-        if not (lconstant is None or lconstant.is_leaf_node()):
+        if lconstant and not lconstant.is_leaf_node():
             node.lhs = lconstant
 
         rconstant = self.visit(node.rhs)
-        if not (rconstant is None or rconstant.is_leaf_node()):
+        if rconstant and not rconstant.is_leaf_node():
             node.rhs = rconstant
 
         if lconstant is not None and rconstant is not None:
@@ -59,3 +59,6 @@ class ConstantFoldingVisitor(BaseVisitor):
 
     def visitIdExpr(self, node):
         pass
+
+    def visitReturnStatement(self, node):
+        self.visit(node.expr)

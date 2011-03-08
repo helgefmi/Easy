@@ -7,7 +7,9 @@ class Parser(object):
     def _assert(self, cond, expected):
         if not cond:
             lineno = self._tokens[0].lineno if self._tokens else -1
-            print expected + ", got %s" % cond
+            if cond is not False:
+                expected += ", got %s" % cond
+            print expected
             print "Probably line %d" % lineno
             print "tokens[:10] = %s" % map(str, self._tokens)[:10]
             exit(1)
@@ -42,16 +44,18 @@ class Parser(object):
 
     def parse_expression(self):
         lhs = self.parse_string() or self.parse_number() or \
-                self.parse_funccall() or self.parse_identifier() or \
-                self.parse_paren_expression()
+               self.parse_funccall() or self.parse_identifier() or \
+               self.parse_paren_expression()
+
         if self._curtype() == 'tok_binary_op':
             token = self._eat_token('tok_binary_op')
             rhs = self.parse_expression()
             return BinaryOpExpr(token.value, lhs, rhs)
+
         return lhs
 
     def parse_statement(self):
-        astnode = self.parse_if()
+        astnode = self.parse_if() or self.parse_return()
         if astnode:
             return astnode
 
@@ -78,12 +82,28 @@ class Parser(object):
         token = self._eat_if_token('tok_identifier')
         return IdExpr(token.value) if token else False
 
+    def parse_funccall(self):
+        if not self._next_tokens('tok_identifier', 'tok_paren_start'):
+            return False
+
+        func_name = self._eat_token('tok_identifier').value
+        self._eat_token('tok_paren_start')
+
+        args = []
+        while self._curtype() != 'tok_paren_end':
+            expr = self.parse_expression()
+            self._assert(expr, 'Expected expression')
+            args.append(expr)
+
+        self._eat_token('tok_paren_end')
+        return FuncCallExpr(func_name, args)
+
     def parse_if(self):
         if not self._eat_if_token('tok_if'):
             return False
 
         cond = self.parse_expression()
-        self._eat_if_token('tok_then')
+        self._eat_token('tok_then')
         true_block = self.parse_block(end_tokens=['tok_else', 'tok_end'])
         false_block = None
 
@@ -97,45 +117,37 @@ class Parser(object):
         if not self._eat_if_token('tok_def'):
             return False
         
-        func_name_token = self._eat_token('tok_identifier')
+        func_name = self._eat_token('tok_identifier').value
 
         args = []
         if self._eat_if_token('tok_paren_start'):
             while self._curtype() == 'tok_identifier':
-                arg_token = self._eat_token('tok_identifier')
-                self._assert(arg_token, 'Expected identifier')
-                args.append(arg_token.value)
+                arg_id = self._eat_token('tok_identifier').value
+                args.append(arg_id)
             self._eat_token('tok_paren_end')
 
         self._eat_token('tok_do')
         block = self.parse_block(end_tokens='tok_end')
         self._eat_token('tok_end')
-        return FuncDefinition(func_name_token.value, args, block)
+
+        return FuncDefinition(func_name, args, block)
 
     def parse_block(self, end_tokens):
         if isinstance(end_tokens, str):
             end_tokens = (end_tokens,)
 
         block = []
-        while True:
+        while self._curtype() not in end_tokens:
             expr = self.parse_statement() or self.parse_expression()
             self._assert(expr, 'Expected statement')
             self._eat_if_token('tok_semicolon')
             block.append(expr)
-            if self._curtype() in end_tokens:
-                break
         return BlockStatement(block)
 
-    def parse_funccall(self):
-        if not self._next_tokens('tok_identifier', 'tok_paren_start'):
+    def parse_return(self):
+        if not self._eat_if_token('tok_return'):
             return False
 
-        func_name_token = self._eat_token('tok_identifier')
-        self._eat_token('tok_paren_start')
-        args = []
-        while self._curtype() != 'tok_paren_end':
-            expr = self.parse_expression()
-            self._assert(expr, 'Expected expression')
-            args.append(expr)
-        self._eat_token('tok_paren_end')
-        return FuncCallExpr(func_name_token.value, args)
+        expr = self.parse_expression()
+        self._assert(expr, 'Expected expression')
+        return ReturnStatement(expr)

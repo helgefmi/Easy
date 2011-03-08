@@ -75,11 +75,18 @@ class IfStatement(Statement):
         self.false_block = false_block
 
     def __str__(self):
-        ret = 'if %s then %s' % (str(self.cond), str(self.true_block))
+        ret = 'if %s then %s' % (self.cond, self.true_block)
         if self.false_block:
             ret += ' else %s' % self.false_block
         ret += ' end'
         return ret
+
+class ReturnStatement(Statement):
+    def __init__(self, expr):
+        self.expr = expr
+
+    def __str__(self):
+        return 'return %s' % self.expr
 
 # Other?
 class FuncDefinition(ASTNode):

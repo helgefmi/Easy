@@ -86,3 +86,7 @@ class PPrintVisitor(BaseVisitor):
     def visitIdExpr(self, node):
         self._print_indent()
         print "Identifier: %s" % node.id
+
+    def visitReturnStatement(self, node):
+        self._print_indent()
+        print "Return: %s" % node.expr

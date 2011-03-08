@@ -10,6 +10,15 @@ class RegisterStack(object):
         self._byte_regs = ('%eax', '%ebx', '%ecx', '%edx')
         self._stack = []
 
+    @property
+    def _used_caller_regs(self):
+        return [reg for reg in self._caller_save \
+                         if reg not in self._free_regs]
+    @property
+    def _used_callee_regs(self):
+        return [reg for reg in self._callee_save \
+                         if reg not in self._free_regs]
+
     def pop(self):
         reg = self._stack.pop()
         if reg in self._all_regs:
@@ -27,9 +36,12 @@ class RegisterStack(object):
         self._stack.append(loc)
 
     def push(self, possible_regs=None):
-        possible_regs = possible_regs or self._free_regs
+        has_possible_regs = possible_regs is not None
+
+        possible_regs = possible_regs or self._free_regs[:]
         assert len(list(possible_regs)) == \
                sum(1 for x in possible_regs if x.startswith('%'))
+
         reg = (reg for reg in self._free_regs if reg in possible_regs).next()
         assert self._free_regs.count(reg) == 1
         assert self._stack.count(reg) == 0
@@ -38,14 +50,16 @@ class RegisterStack(object):
         return reg
 
     def save_caller_regs(self, codegen):
-        regs = [reg for reg in self._caller_save if reg not in self._free_regs]
-        self.omit_regs(codegen, regs, 'pushl')
-        return regs
+        self.omit_regs(codegen, self._used_caller_regs, 'pushl')
+
+    def restore_caller_regs(self, codegen):
+        self.omit_regs(codegen, reversed(self._used_caller_regs), 'popl')
 
     def save_callee_regs(self, codegen):
-        regs = [reg for reg in self._callee_save if reg not in self._free_regs]
-        self.omit_regs(codegen, regs, 'pushl')
-        return regs
+        self.omit_regs(codegen, self._used_callee_regs, 'pushl')
+
+    def restore_callee_regs(self, codegen):
+        self.omit_regs(codegen, reversed(self._used_callee_regs), 'popl')
 
     def omit_regs(self, codegen, regs, instruction):
         for reg in regs:
@@ -104,7 +118,7 @@ class CodeGenVisitor(BaseVisitor):
         self._regs.push_constant('$.%s' % label)
 
     def visitFuncCallExpr(self, node):
-        regs_saved = self._regs.save_caller_regs(self)
+        self._regs.save_caller_regs(self)
 
         self._visit_list(node.args)
 
@@ -116,11 +130,11 @@ class CodeGenVisitor(BaseVisitor):
         if node.args:
             self.omit('addl $%d, %%esp' % (len(node.args) * 4))
 
+        self._regs.restore_caller_regs(self)
+
         dst = self._regs.push()
         if dst != '%eax':
             self.omit('movl %%eax, %s' % dst)
-
-        self._regs.omit_regs(self, regs_saved, 'popl')
 
     def visitExprStatement(self, node):
         self.visit(node.expr)
@@ -135,9 +149,9 @@ class CodeGenVisitor(BaseVisitor):
         self.omit('pushl %ebp')
         self.omit('movl %esp, %ebp')
 
-        regs_saved = self._regs.save_callee_regs(self)
+        self._regs.save_callee_regs(self)
         self.visit(node.block)
-        self._regs.omit_regs(self, regs_saved, 'popl')
+        self._regs.restore_callee_regs(self)
 
         self.omit('leave')
         self.omit('ret')
@@ -194,3 +208,13 @@ class CodeGenVisitor(BaseVisitor):
     def visitIdExpr(self, node):
         loc = '%d(%%ebp)' % (8 + (node.var_idx * 4))
         self.omit('movl %s, %s' % (loc, self._regs.push()))
+
+    def visitReturnStatement(self, node):
+        self.visit(node.expr)
+        src_reg = self._regs.pop()
+
+        if src_reg != '%eax':
+            self.omit('movl %s, %%eax' % (src_reg))
+
+        self.omit('leave')
+        self.omit('ret')

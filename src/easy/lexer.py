@@ -30,6 +30,7 @@ class Lexer(object):
     KEYWORDS = (
         'def', 'do', 'end',
         'if', 'then', 'else',
+        'return',
     )
     SYMBOLS = (
         ('>=', 'tok_binary_op'),

@@ -29,6 +29,7 @@ class SymbolTable(dict):
             parent = {
                 'puts': FunctionSymType(),
                 'printf': FunctionSymType(),
+                'write': FunctionSymType(),
                 'atoi': FunctionSymType(),
                 'fflush': FunctionSymType(),
                 'getchar': FunctionSymType(),
@@ -137,3 +138,6 @@ class SymbolTableVisitor(BaseVisitor):
             exit(1)
 
         node.var_idx = self._cur_table.find(node.id).var_idx[node.id]
+
+    def visitReturnStatement(self, node):
+        self.visit(node.expr)
