@@ -55,9 +55,9 @@ class Parser(object):
         return lhs
 
     def parse_statement(self):
-        astnode = self.parse_if() or self.parse_return()
-        if astnode:
-            return astnode
+        statement = self.parse_if() or self.parse_return()
+        if statement:
+            return statement
 
         expr = self.parse_expression()
         if expr:

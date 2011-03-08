@@ -36,8 +36,6 @@ class RegisterStack(object):
         self._stack.append(loc)
 
     def push(self, possible_regs=None):
-        has_possible_regs = possible_regs is not None
-
         possible_regs = possible_regs or self._free_regs[:]
         assert len(list(possible_regs)) == \
                sum(1 for x in possible_regs if x.startswith('%'))
@@ -214,7 +212,8 @@ class CodeGenVisitor(BaseVisitor):
         src_reg = self._regs.pop()
 
         if src_reg != '%eax':
-            self.omit('movl %s, %%eax' % (src_reg))
+            self.omit('movl %s, %%eax' % src_reg)
 
+        self._regs.restore_callee_regs(self)
         self.omit('leave')
         self.omit('ret')
