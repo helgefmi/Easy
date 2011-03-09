@@ -105,7 +105,7 @@ def Void test_function_arguments do
     print_hex(20281789 38177486 "kakemums")
 end
 
-def Void just_return do
+def Number just_return do
     return (1337 + atoi("1") - 1)
 end
 

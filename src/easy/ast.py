@@ -101,7 +101,8 @@ class FuncDefinition(ASTNode):
         self.func_name = func_name
         self.args = args
         self.block = block
-        self.type = get_or_create_type(type_name) or None
+        self.type = get_or_create_type(type_name)
+        assert self.type
 
 class TopLevel(ASTNode):
     def __init__(self, block):

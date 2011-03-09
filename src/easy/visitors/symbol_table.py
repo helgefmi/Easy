@@ -76,6 +76,7 @@ class SymbolTableVisitor(BaseVisitor):
     def __init__(self, *args, **kwargs):
         super(SymbolTableVisitor, self).__init__(*args, **kwargs)
         self._cur_table = None
+        self._cur_function = None
 
     def visitNumberExpr(self, node):
         assert node.type is Number
@@ -131,6 +132,8 @@ class SymbolTableVisitor(BaseVisitor):
             self._visit_list(node.block)
 
     def visitFuncDefinition(self, node):
+        self._cur_function = node
+
         func_type = FunctionSymType(node.type, [arg.type for arg in node.args])
         self._cur_table.add(node.func_name, func_type)
         with NewLexicalScope(self, node):
@@ -150,9 +153,9 @@ class SymbolTableVisitor(BaseVisitor):
         self.visit(node.lhs)
         self.visit(node.rhs)
         if node.lhs.type is not node.rhs.type:
-            print "hmz"
-            print str(node.lhs.type), str(node.lhs)
-            print str(node.rhs.type), str(node.rhs)
+            print "Invalid operation: %s %s %s" % (
+                node.lhs.type, node.operator, node.rhs.type
+            )
             exit(1)
         assert node.lhs.type is not None
         assert node.rhs.type is not None
@@ -179,3 +182,11 @@ class SymbolTableVisitor(BaseVisitor):
 
     def visitReturnStatement(self, node):
         self.visit(node.expr)
+        if node.expr.type is not self._cur_function.type:
+            print "Return mismatch in function %s, f=%s vs r=%s" % (
+                self._cur_function.func_name,
+                self._cur_function.type,
+                node.expr.type,
+            )
+            print dir(self._cur_function), type(self._cur_function)
+            exit(1)
