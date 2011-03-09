@@ -79,8 +79,13 @@ class Parser(object):
         return StringExpr(token.value) if token else False
 
     def parse_identifier(self):
+        if self._next_tokens('tok_type', 'tok_identifier'):
+            type = self._eat_token('tok_type').value
+        else:
+            type = None
+
         token = self._eat_if_token('tok_identifier')
-        return IdExpr(token.value) if token else False
+        return IdExpr(token.value, type) if token else False
 
     def parse_funccall(self):
         if not self._next_tokens('tok_identifier', 'tok_paren_start'):
@@ -117,20 +122,21 @@ class Parser(object):
         if not self._eat_if_token('tok_def'):
             return False
         
+        type = self._eat_if_token('tok_type')
         func_name = self._eat_token('tok_identifier').value
 
         args = []
         if self._eat_if_token('tok_paren_start'):
-            while self._curtype() == 'tok_identifier':
-                arg_id = self._eat_token('tok_identifier').value
-                args.append(arg_id)
+            while self._curtype() != 'tok_paren_end':
+                id = self.parse_identifier()
+                args.append(id)
             self._eat_token('tok_paren_end')
 
         self._eat_token('tok_do')
         block = self.parse_block(end_tokens='tok_end')
         self._eat_token('tok_end')
 
-        return FuncDefinition(func_name, args, block)
+        return FuncDefinition(func_name, args, block, type.value if type else None)
 
     def parse_block(self, end_tokens):
         if isinstance(end_tokens, str):

@@ -79,7 +79,8 @@ class Lexer(object):
             if not self.input:
                 break
             result = self.lex_identifier() or self.lex_number() \
-                      or self.lex_symbol() or self.lex_string()
+                      or self.lex_symbol() or self.lex_string() \
+                      or self.lex_type()
             self._assert(result, 'Unexpected input')
         return self._tokens
 
@@ -116,6 +117,16 @@ class Lexer(object):
             self._append('tok_%s' % id)
         else:
             self._append('tok_identifier', id)
+        return True
+
+    def lex_type(self):
+        match = re.match(r'[A-Z][a-zA-Z0-9_]*', self.input)
+        if not match:
+            return False
+
+        name = match.group()
+        self.input = self.input[match.end():]
+        self._append('tok_type', name)
         return True
 
     def lex_symbol(self):

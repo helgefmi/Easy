@@ -1,15 +1,19 @@
 import sys
 
 from easy.visitors.base import BaseVisitor
+from easy.types import Void, Number, String
 
 class SymType(object):
     pass
 
 class FunctionSymType(SymType):
-    pass
+    def __init__(self, type, arg_types):
+        self.type = type
+        self.arg_types = arg_types
 
 class VariableSymType(SymType):
-    pass
+    def __init__(self, type):
+        self.type = type
 
 class NewLexicalScope(object):
     def __init__(self, visitor, node):
@@ -27,17 +31,9 @@ class SymbolTable(dict):
     def __init__(self, parent=None):
         if parent is None:
             parent = {
-                'puts': FunctionSymType(),
-                'printf': FunctionSymType(),
-                'write': FunctionSymType(),
-                'atoi': FunctionSymType(),
-                'fflush': FunctionSymType(),
-                'getchar': FunctionSymType(),
-                'strlen': FunctionSymType(),
-                'time': FunctionSymType(),
-                'strcmp': FunctionSymType(),
-                'strstr': FunctionSymType(),
-                'strdup': FunctionSymType(),
+                'puts': FunctionSymType(Void, [String]),
+                'printf': FunctionSymType(Void, []),
+                'atoi': FunctionSymType(Number, [String]),
             }
         self.parent = parent
         self.num_variables = 0
@@ -82,10 +78,10 @@ class SymbolTableVisitor(BaseVisitor):
         self._cur_table = None
 
     def visitNumberExpr(self, node):
-        pass
+        assert node.type is Number
 
     def visitStringExpr(self, node):
-        pass
+        assert node.type is String
 
     def visitFuncCallExpr(self, node):
         func_name = node.func_name
@@ -97,7 +93,32 @@ class SymbolTableVisitor(BaseVisitor):
             print "%s is a %s, not a function" % (func_name,
                                                   self._cur_table[func_name])
             exit(1)
+
+        assert node.type is None
+        node.type = self._cur_table[func_name].type
+        assert node.type is not None
+
         self._visit_list(node.args)
+
+        func_type = self._cur_table[func_name].type
+        func_arg_types = self._cur_table[func_name].arg_types
+        arg_types = [arg.type for arg in node.args]
+
+        # TODO :-)
+        if func_name == 'printf':
+            return
+
+        if len(func_arg_types) != len(arg_types):
+            print "Called %s with invalid amount of arguments %s, expecting %s" % (
+                func_name, map(str, arg_types), map(str, func_arg_types)
+            )
+            exit(1)
+        for i, arg_type in enumerate(arg_types):
+            if arg_type is not func_arg_types[i]:
+                print "Called %s with invalid types %s, expecting %s" % (
+                    func_name, map(str, arg_types), map(str, func_arg_types)
+                )
+                exit(1)
 
     def visitExprStatement(self, node):
         self.visit(node.expr)
@@ -110,10 +131,11 @@ class SymbolTableVisitor(BaseVisitor):
             self._visit_list(node.block)
 
     def visitFuncDefinition(self, node):
-        self._cur_table.add(node.func_name, FunctionSymType())
+        func_type = FunctionSymType(node.type, [arg.type for arg in node.args])
+        self._cur_table.add(node.func_name, func_type)
         with NewLexicalScope(self, node):
             for arg in node.args:
-                node.symtable.add(arg, VariableSymType())
+                node.symtable.add(arg.id, VariableSymType(arg.type))
             self.visit(node.block)
 
     def visitIfStatement(self, node):
@@ -127,6 +149,16 @@ class SymbolTableVisitor(BaseVisitor):
     def visitBinaryOpExpr(self, node):
         self.visit(node.lhs)
         self.visit(node.rhs)
+        if node.lhs.type is not node.rhs.type:
+            print "hmz"
+            print str(node.lhs.type), str(node.lhs)
+            print str(node.rhs.type), str(node.rhs)
+            exit(1)
+        assert node.lhs.type is not None
+        assert node.rhs.type is not None
+
+        assert node.type is None
+        node.type = node.lhs.type
     
     def visitIdExpr(self, node):
         if node.id not in self._cur_table:
@@ -138,6 +170,12 @@ class SymbolTableVisitor(BaseVisitor):
             exit(1)
 
         node.var_idx = self._cur_table.find(node.id).var_idx[node.id]
+        if node.type is None:
+            node.type = self._cur_table[node.id].type
+
+        if node.type is None:
+            print "Unknown type of identifier %s" % node
+            exit(1)
 
     def visitReturnStatement(self, node):
         self.visit(node.expr)
