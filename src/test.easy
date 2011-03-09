@@ -88,25 +88,6 @@ def test_binop do
     test_arithmetic()
 end
 
-def test_crazy do
-    printf(
-        "hei: %d %d (%s) / %d %d\n"
-        strlen("a")
-        time(atoi("0"))
-        "hehe"
-        atoi("252")
-        strcmp("AKKI" strstr("I SAY EKKI!" "EKKI"))
-    )
-
-    printf("%d\n" strcmp("AKKI" strdup(strstr("I SAY EKKI!" "EKKI"))))
-    printf("%d\n" strcmp("OKKI" strstr("I SAY EKKI!" "EKKI")))
-
-    printf("%d of \"%s\" is \"" 5 "Lorem ipsum dolor sit amet")
-    fflush(0)
-    write(0 "Lorem ipsum dolor sit amet" 5)
-    printf("\"\n")
-end
-
 def test_constant_folding do
     printf("5 * 5 = %d\n" (5 * 5))
     printf("9 > 5 = %d\n" (9 > 5))
@@ -125,18 +106,18 @@ def test_function_arguments do
 end
 
 def just_return do
-    return 1337
+    return (1337 + atoi("1") - 1)
 end
 
 def test_return do
     printf("1337 = %d\n" just_return())
 end
 
-def countdown(n) do
-    printf("%d..\n" n)
-    if (n > 1) then
-        countdown(n - 1)
+def count(n) do
+    if n > 1 then
+        count(n - 1)
     end
+    printf("%d.. " n)
 end
 
 def nfac(n) do
@@ -161,9 +142,17 @@ def fib(n) do
     return fib(n - 2) + fib(n - 1)
 end
 
+def hanoi(n k) do
+    if n == 1 then
+        return 2
+    end
+    return hanoi(n - 1) + hanoi(n - 1)
+end
+
 def test_useful_stuff do
-    puts("countdown(4)")
-    countdown(4)
+    puts("count(4)")
+    count(4)
+    puts("")
 
     puts("nfac(11) = 39916800")
     printf("%d\n" nfac(11))
@@ -171,8 +160,11 @@ def test_useful_stuff do
     puts("nfac_tail(11) = 39916800")
     printf("%d\n" nfac_tail(11 1))
 
-    puts("fib(10) = ?")
+    puts("fib(39) = 63245986")
     printf("%d\n" fib(39))
+
+    puts("hanoi(25) = 33554431")
+    printf("%d\n" (hanoi(25) - 1))
 end
 
 def test do

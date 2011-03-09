@@ -1,4 +1,3 @@
-from easy.ast import Expression
 from easy.visitors.base import BaseVisitor
 
 class RegisterStack(object):
@@ -10,14 +9,7 @@ class RegisterStack(object):
         self._byte_regs = ('%eax', '%ebx', '%ecx', '%edx')
         self._stack = []
 
-    @property
-    def _used_caller_regs(self):
-        return [reg for reg in self._caller_save \
-                         if reg not in self._free_regs]
-    @property
-    def _used_callee_regs(self):
-        return [reg for reg in self._callee_save \
-                         if reg not in self._free_regs]
+        self._saved_caller_regs = []
 
     def pop(self):
         reg = self._stack.pop()
@@ -27,13 +19,6 @@ class RegisterStack(object):
 
     def push_bytereg(self):
         return self.push(self._byte_regs)
-
-    def push_constant(self, constant):
-        assert constant.startswith('$')
-        self._stack.append(constant)
-
-    def push_loc(self, loc):
-        self._stack.append(loc)
 
     def push(self, possible_regs=None):
         possible_regs = possible_regs or self._free_regs[:]
@@ -48,16 +33,20 @@ class RegisterStack(object):
         return reg
 
     def save_caller_regs(self, codegen):
-        self.omit_regs(codegen, self._used_caller_regs, 'pushl')
+        regs = [reg for reg in self._caller_save \
+                 if reg not in self._free_regs]
+        self._saved_caller_regs.append(regs)
+        self.omit_regs(codegen, regs, 'pushl')
 
     def restore_caller_regs(self, codegen):
-        self.omit_regs(codegen, reversed(self._used_caller_regs), 'popl')
+        regs = self._saved_caller_regs.pop()
+        self.omit_regs(codegen, reversed(regs), 'popl')
 
     def save_callee_regs(self, codegen):
-        self.omit_regs(codegen, self._used_callee_regs, 'pushl')
+        self.omit_regs(codegen, self._callee_save, 'pushl')
 
     def restore_callee_regs(self, codegen):
-        self.omit_regs(codegen, reversed(self._used_callee_regs), 'popl')
+        self.omit_regs(codegen, reversed(self._callee_save), 'popl')
 
     def omit_regs(self, codegen, regs, instruction):
         for reg in regs:
@@ -70,6 +59,7 @@ class CodeGenVisitor(BaseVisitor):
         self._output = ''
         self._string_labels = {}
         self._label_no = 0
+        self._cur_func_end_label = None
         self._binary_op_instructions = {
             '*': 'imul',
             '-': 'subl',
@@ -82,12 +72,12 @@ class CodeGenVisitor(BaseVisitor):
             '!=': 'setne',
         }
         self._arithmetic_instructions = ('imul', 'subl', 'idiv', 'addl',)
-        self._compare_instructions = ('setg', 'setl', 'setle', 'setge', 'sete', 'setne')
+        self._compare_instructions = ('setg', 'setl', 'setle', 'setge',
+                                      'sete', 'setne')
 
     def _get_string_label(self, string):
-        if string in self._string_labels:
-            return self._string_labels[string]
-        self._string_labels[string] = 'LC%d' % len(self._string_labels)
+        if string not in self._string_labels:
+            self._string_labels[string] = 'LC%d' % len(self._string_labels)
         return self._string_labels[string]
 
     def _get_unique_label(self):
@@ -103,17 +93,14 @@ class CodeGenVisitor(BaseVisitor):
         if not (line.startswith('.') or line.endswith(':')):
             line = '\t' + line
 
-        spaces = 60 - len(line)
-        line += (' ' * spaces) + '# free_regs=%s' % self._regs._free_regs
-
         self._output += line + '\n'
 
     def visitNumberExpr(self, node):
-        self._regs.push_constant('$%d' % node.number)
+        self.omit('movl $%d, %s' % (node.number, self._regs.push()))
 
     def visitStringExpr(self, node):
         label = self._get_string_label(node.string)
-        self._regs.push_constant('$.%s' % label)
+        self.omit('movl $.%s, %s' % (label, self._regs.push()))
 
     def visitFuncCallExpr(self, node):
         self._regs.save_caller_regs(self)
@@ -121,18 +108,18 @@ class CodeGenVisitor(BaseVisitor):
         self._visit_list(node.args)
 
         for _ in node.args:
-            loc = self._regs.pop()
-            self.omit('pushl %s' % loc)
+            self.omit('pushl %s' % self._regs.pop())
 
         self.omit('call %s' % node.func_name)
+
         if node.args:
             self.omit('addl $%d, %%esp' % (len(node.args) * 4))
-
-        self._regs.restore_caller_regs(self)
 
         dst = self._regs.push()
         if dst != '%eax':
             self.omit('movl %%eax, %s' % dst)
+
+        self._regs.restore_caller_regs(self)
 
     def visitExprStatement(self, node):
         self.visit(node.expr)
@@ -142,6 +129,9 @@ class CodeGenVisitor(BaseVisitor):
         self._visit_list(node.block)
 
     def visitFuncDefinition(self, node):
+        assert self._cur_func_end_label is None
+        self._cur_func_end_label = self._get_unique_label()
+
         self.omit('.globl %s' % node.func_name)
         self.omit('%s:' % node.func_name)
         self.omit('pushl %ebp')
@@ -149,10 +139,13 @@ class CodeGenVisitor(BaseVisitor):
 
         self._regs.save_callee_regs(self)
         self.visit(node.block)
-        self._regs.restore_callee_regs(self)
 
+        self.omit('.%s:' % self._cur_func_end_label)
+        self._regs.restore_callee_regs(self)
         self.omit('leave')
         self.omit('ret')
+
+        self._cur_func_end_label = None
 
     def visitIfStatement(self, node):
         L1, L2 = self._get_unique_label(), self._get_unique_label()
@@ -160,21 +153,17 @@ class CodeGenVisitor(BaseVisitor):
         self.visit(node.cond)
         reg = self._regs.pop()
 
-        # TODO: This is obviously not neccessary
-        if not reg.startswith('%'):
-            old, reg = reg, self._regs.push()
-            self.omit('movl %s, %s' % (old, reg))
-
         self.omit('testl %s, %s' % (reg, reg))
         self.omit('jz .%s' % L1)
         self.visit(node.true_block)
-        self.omit('jmp .%s' % L2)
+
+        if node.false_block:
+            self.omit('jmp .%s' % L2)
 
         self.omit('.%s:' % L1)
         if node.false_block:
             self.visit(node.false_block)
-
-        self.omit('.%s:' % L2)
+            self.omit('.%s:' % L2)
 
     def visitBinaryOpExpr(self, node):
         self.visit(node.lhs)
@@ -200,7 +189,6 @@ class CodeGenVisitor(BaseVisitor):
         self.omit('.text')
         self._visit_list(node.block)
         self._omit_rodata()
-
         return self._output
 
     def visitIdExpr(self, node):
@@ -209,11 +197,9 @@ class CodeGenVisitor(BaseVisitor):
 
     def visitReturnStatement(self, node):
         self.visit(node.expr)
-        src_reg = self._regs.pop()
+        reg = self._regs.pop()
 
-        if src_reg != '%eax':
-            self.omit('movl %s, %%eax' % src_reg)
+        if reg != '%eax':
+            self.omit('movl %s, %%eax' % reg)
 
-        self._regs.restore_callee_regs(self)
-        self.omit('leave')
-        self.omit('ret')
+        self.omit('jmp .%s' % self._cur_func_end_label)
