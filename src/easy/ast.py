@@ -1,5 +1,6 @@
 # Abstract
 class ASTNode(object):
+    type = None
     def accept(self, visitor, *args, **kwargs):
         name = self.__class__.__name__
         return getattr(visitor, 'visit%s' % name)(self, *args, **kwargs)
@@ -17,6 +18,7 @@ class Statement(ASTNode):
 class StringExpr(Expression):
     def __init__(self, string):
         self.string = string
+        self.type = 'String'
 
     def __str__(self):
         return '"%s"' % self.string
@@ -24,6 +26,7 @@ class StringExpr(Expression):
 class NumberExpr(Expression):
     def __init__(self, number):
         self.number = number
+        self.type = 'Number'
 
     def __str__(self):
         return '"%s"' % self.number
@@ -35,7 +38,7 @@ class BinaryOpExpr(Expression):
         self.rhs = rhs
 
     def __str__(self):
-        return '"%s %s %s"' % (self.lhs, self.operator, self.rhs)
+        return '%s %s %s' % (self.lhs, self.operator, self.rhs)
 
 class FuncCallExpr(Expression):
     def __init__(self, func_name, args):
@@ -47,11 +50,12 @@ class FuncCallExpr(Expression):
                            ' '.join(str(arg) for arg in self.args))
 
 class IdExpr(Expression):
-    def __init__(self, id, type_name):
+    def __init__(self, id, type):
         self.id = id
+        self.type = type
 
     def __str__(self):
-        return '%s' % self.id
+        return '%s %s' % (self.type, self.id)
 
 # Statements
 class BlockStatement(Statement):
@@ -90,10 +94,11 @@ class ReturnStatement(Statement):
 
 # Other?
 class FuncDefinition(ASTNode):
-    def __init__(self, func_name, args, block, type_name):
+    def __init__(self, func_name, args, block, type):
         self.func_name = func_name
         self.args = args
         self.block = block
+        self.type = type
 
 class TopLevel(ASTNode):
     def __init__(self, block):

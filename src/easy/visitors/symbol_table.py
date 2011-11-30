@@ -1,9 +1,6 @@
 from easy.ast import FuncDefinition, IdExpr
 from easy.visitors.base import BaseVisitor
 
-class SymType(object):
-    pass
-
 class NewLexicalScope(object):
     def __init__(self, visitor, node):
         self._visitor = visitor
@@ -20,8 +17,8 @@ class SymbolTable(dict):
     def __init__(self, parent=None):
         if parent is None:
             parent = {
-                'puts': FuncDefinition('puts', [IdExpr('_a', 'String')], [], 'Void'),
-                'atoi': FuncDefinition('atoi', [IdExpr('_a', 'String')], [], 'Void'),
+                'puts': FuncDefinition('puts', [IdExpr('_', 'String')], [], 'Void'),
+                'atoi': FuncDefinition('atoi', [IdExpr('_', 'String')], [], 'Void'),
                 'printf': None,
             }
         self.parent = parent

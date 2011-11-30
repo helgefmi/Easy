@@ -1,4 +1,4 @@
-from easy.ast import *
+from easy import ast
 
 class Parser(object):
     def __init__(self, tokens):
@@ -40,7 +40,7 @@ class Parser(object):
             function = self.parse_function()
             self._assert(function, "Expected function")
             toplevel.append(function)
-        return TopLevel(toplevel)
+        return ast.TopLevel(toplevel)
 
     def parse_expression(self):
         lhs = (self.parse_string() or self.parse_number() or
@@ -50,7 +50,7 @@ class Parser(object):
         if self._curtype() == 'tok_binary_op':
             token = self._eat_token('tok_binary_op')
             rhs = self.parse_expression()
-            return BinaryOpExpr(token.value, lhs, rhs)
+            return ast.BinaryOpExpr(token.value, lhs, rhs)
 
         return lhs
 
@@ -61,7 +61,7 @@ class Parser(object):
 
         expr = self.parse_expression()
         if expr:
-            return ExprStatement(expr)
+            return ast.ExprStatement(expr)
 
     def parse_paren_expression(self):
         if not self._eat_if_token('tok_paren_start'):
@@ -72,11 +72,11 @@ class Parser(object):
 
     def parse_number(self):
         token = self._eat_if_token('tok_number')
-        return NumberExpr(token.value) if token else False
+        return ast.NumberExpr(token.value) if token else False
 
     def parse_string(self):
         token = self._eat_if_token('tok_string')
-        return StringExpr(token.value) if token else False
+        return ast.StringExpr(token.value) if token else False
 
     def parse_identifier(self):
         type = None
@@ -84,7 +84,7 @@ class Parser(object):
             type = self._eat_token('tok_type').value
 
         token = self._eat_if_token('tok_identifier')
-        return IdExpr(token.value, type) if token else False
+        return ast.IdExpr(token.value, type) if token else False
 
     def parse_funccall(self):
         if not self._next_tokens('tok_identifier', 'tok_paren_start'):
@@ -100,7 +100,7 @@ class Parser(object):
             args.append(expr)
 
         self._eat_token('tok_paren_end')
-        return FuncCallExpr(func_name, args)
+        return ast.FuncCallExpr(func_name, args)
 
     def parse_if(self):
         if not self._eat_if_token('tok_if'):
@@ -115,7 +115,7 @@ class Parser(object):
             false_block = self.parse_block(end_tokens='tok_end')
         self._eat_token('tok_end')
 
-        return IfStatement(cond, true_block, false_block)
+        return ast.IfStatement(cond, true_block, false_block)
 
     def parse_function(self):
         if not self._eat_if_token('tok_def'):
@@ -135,7 +135,7 @@ class Parser(object):
         block = self.parse_block(end_tokens='tok_end')
         self._eat_token('tok_end')
 
-        return FuncDefinition(func_name, args, block, type.value if type else None)
+        return ast.FuncDefinition(func_name, args, block, type.value if type else None)
 
     def parse_block(self, end_tokens):
         if isinstance(end_tokens, str):
@@ -147,7 +147,7 @@ class Parser(object):
             self._assert(expr, 'Expected statement')
             self._eat_if_token('tok_semicolon')
             block.append(expr)
-        return BlockStatement(block)
+        return ast.BlockStatement(block)
 
     def parse_return(self):
         if not self._eat_if_token('tok_return'):
@@ -155,4 +155,4 @@ class Parser(object):
 
         expr = self.parse_expression()
         self._assert(expr, 'Expected expression')
-        return ReturnStatement(expr)
+        return ast.ReturnStatement(expr)

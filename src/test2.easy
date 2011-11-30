@@ -1,3 +1,7 @@
+def Void test_str2 (String a) do
+    return puts("hi")
+end
+
 def Void test_str (String str) do
     puts(str)
 end
