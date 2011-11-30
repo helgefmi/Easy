@@ -3,7 +3,7 @@ class BaseVisitor(object):
         self._compiler = compiler
 
     def _visit_list(self, nodes, *args, **kwargs):
-        return [self.visit(node) for node in nodes]
+        return [self.visit(node, *args, **kwargs) for node in nodes]
 
     def visit(self, node, *args, **kwargs):
         return node.accept(self, *args, **kwargs)

@@ -1,19 +1,8 @@
-import sys
-
+from easy.ast import FuncDefinition, IdExpr
 from easy.visitors.base import BaseVisitor
-from easy.types import Void, Number, String
 
 class SymType(object):
     pass
-
-class FunctionSymType(SymType):
-    def __init__(self, type, arg_types):
-        self.type = type
-        self.arg_types = arg_types
-
-class VariableSymType(SymType):
-    def __init__(self, type):
-        self.type = type
 
 class NewLexicalScope(object):
     def __init__(self, visitor, node):
@@ -31,9 +20,9 @@ class SymbolTable(dict):
     def __init__(self, parent=None):
         if parent is None:
             parent = {
-                'puts': FunctionSymType(Void, [String]),
-                'printf': FunctionSymType(Void, []),
-                'atoi': FunctionSymType(Number, [String]),
+                'puts': FuncDefinition('puts', [IdExpr('_a', 'String')], [], 'Void'),
+                'atoi': FuncDefinition('atoi', [IdExpr('_a', 'String')], [], 'Void'),
+                'printf': None,
             }
         self.parent = parent
         self.num_variables = 0
@@ -55,14 +44,14 @@ class SymbolTable(dict):
             ret += ' / ' + str(self.parent)
         return ret
 
-    def add(self, symbol, type):
+    def add(self, symbol, node):
         if symbol in self:
             print "Unknown symbol '%s'"
             print str(self)
             exit(1)
-        self[symbol] = type
+        self[symbol] = node
 
-        if isinstance(type, VariableSymType):
+        if isinstance(node, IdExpr):
             self.var_idx[symbol] = self.num_variables
             self.num_variables += 1
 
@@ -77,49 +66,19 @@ class SymbolTableVisitor(BaseVisitor):
         super(SymbolTableVisitor, self).__init__(*args, **kwargs)
         self._cur_table = None
         self._cur_function = None
+        self._checks = []
 
     def visitNumberExpr(self, node):
-        assert node.type is Number
+        pass
 
     def visitStringExpr(self, node):
-        assert node.type is String
+        pass
 
     def visitFuncCallExpr(self, node):
         func_name = node.func_name
-        if func_name not in self._cur_table:
-            print "Unknown function name %s" % node.func_name
-            print str(self._cur_table)
-            exit(1)
-        elif not isinstance(self._cur_table[func_name], FunctionSymType):
-            print "%s is a %s, not a function" % (func_name,
-                                                  self._cur_table[func_name])
-            exit(1)
-
-        assert node.type is None
-        node.type = self._cur_table[func_name].type
-        assert node.type is not None
+        assert func_name in self._cur_table, func_name
 
         self._visit_list(node.args)
-
-        func_type = self._cur_table[func_name].type
-        func_arg_types = self._cur_table[func_name].arg_types
-        arg_types = [arg.type for arg in node.args]
-
-        # TODO :-)
-        if func_name == 'printf':
-            return
-
-        if len(func_arg_types) != len(arg_types):
-            print "Called %s with invalid amount of arguments %s, expecting %s" % (
-                func_name, map(str, arg_types), map(str, func_arg_types)
-            )
-            exit(1)
-        for i, arg_type in enumerate(arg_types):
-            if arg_type is not func_arg_types[i]:
-                print "Called %s with invalid types %s, expecting %s" % (
-                    func_name, map(str, arg_types), map(str, func_arg_types)
-                )
-                exit(1)
 
     def visitExprStatement(self, node):
         self.visit(node.expr)
@@ -131,14 +90,16 @@ class SymbolTableVisitor(BaseVisitor):
         with NewLexicalScope(self, node):
             self._visit_list(node.block)
 
+        for check in self._checks:
+            check()
+
     def visitFuncDefinition(self, node):
         self._cur_function = node
 
-        func_type = FunctionSymType(node.type, [arg.type for arg in node.args])
-        self._cur_table.add(node.func_name, func_type)
+        self._cur_table.add(node.func_name, node)
         with NewLexicalScope(self, node):
             for arg in node.args:
-                node.symtable.add(arg.id, VariableSymType(arg.type))
+                node.symtable.add(arg.id, arg)
             self.visit(node.block)
 
     def visitIfStatement(self, node):
@@ -152,41 +113,17 @@ class SymbolTableVisitor(BaseVisitor):
     def visitBinaryOpExpr(self, node):
         self.visit(node.lhs)
         self.visit(node.rhs)
-        if node.lhs.type is not node.rhs.type:
-            print "Invalid operation: %s %s %s" % (
-                node.lhs.type, node.operator, node.rhs.type
-            )
-            exit(1)
-        assert node.lhs.type is not None
-        assert node.rhs.type is not None
 
-        assert node.type is None
-        node.type = node.lhs.type
-    
     def visitIdExpr(self, node):
         if node.id not in self._cur_table:
             print "Unknown variable %s" % node.id
             exit(1)
-        elif not isinstance(self._cur_table[node.id], VariableSymType):
+        elif not isinstance(self._cur_table[node.id], IdExpr):
             print "%s is not a variable, it's a %s" % (node.id,
                                                        self._cur_table[node.id])
             exit(1)
 
         node.var_idx = self._cur_table.find(node.id).var_idx[node.id]
-        if node.type is None:
-            node.type = self._cur_table[node.id].type
-
-        if node.type is None:
-            print "Unknown type of identifier %s" % node
-            exit(1)
 
     def visitReturnStatement(self, node):
         self.visit(node.expr)
-        if node.expr.type is not self._cur_function.type:
-            print "Return mismatch in function %s, f=%s vs r=%s" % (
-                self._cur_function.func_name,
-                self._cur_function.type,
-                node.expr.type,
-            )
-            print dir(self._cur_function), type(self._cur_function)
-            exit(1)

@@ -11,6 +11,10 @@ class RegisterStack(object):
 
         self._saved_caller_regs = []
 
+    def _omit_regs(self, codegen, regs, instruction):
+        for reg in regs:
+            codegen.omit('%s %s' % (instruction, reg))
+
     def pop(self):
         reg = self._stack.pop()
         if reg in self._all_regs:
@@ -36,21 +40,17 @@ class RegisterStack(object):
         regs = [reg for reg in self._caller_save \
                  if reg not in self._free_regs]
         self._saved_caller_regs.append(regs)
-        self.omit_regs(codegen, regs, 'pushl')
+        self._omit_regs(codegen, regs, 'pushl')
 
     def restore_caller_regs(self, codegen):
         regs = self._saved_caller_regs.pop()
-        self.omit_regs(codegen, reversed(regs), 'popl')
+        self._omit_regs(codegen, reversed(regs), 'popl')
 
     def save_callee_regs(self, codegen):
-        self.omit_regs(codegen, self._callee_save, 'pushl')
+        self._omit_regs(codegen, self._callee_save, 'pushl')
 
     def restore_callee_regs(self, codegen):
-        self.omit_regs(codegen, reversed(self._callee_save), 'popl')
-
-    def omit_regs(self, codegen, regs, instruction):
-        for reg in regs:
-            codegen.omit('%s %s' % (instruction, reg))
+        self._omit_regs(codegen, reversed(self._callee_save), 'popl')
 
 class CodeGenVisitor(BaseVisitor):
     def __init__(self, *args, **kwargs):
@@ -72,8 +72,8 @@ class CodeGenVisitor(BaseVisitor):
             '!=': 'setne',
         }
         self._arithmetic_instructions = ('imul', 'subl', 'idiv', 'addl',)
-        self._compare_instructions = ('setg', 'setl', 'setle', 'setge',
-                                      'sete', 'setne')
+        self._compare_instructions = ('setg', 'setl', 'setle', 'setge', 'sete',
+                                      'setne')
 
     def _get_string_label(self, string):
         if string not in self._string_labels:

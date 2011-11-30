@@ -1,9 +1,9 @@
-def Void test_int (Number int) do
-    printf("%d\n" int)
-end
-
 def Void test_str (String str) do
     puts(str)
+end
+
+def Void test_int (Number int) do
+    printf("%d\n" int)
 end
 
 def Void main do

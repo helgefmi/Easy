@@ -43,9 +43,9 @@ class Parser(object):
         return TopLevel(toplevel)
 
     def parse_expression(self):
-        lhs = self.parse_string() or self.parse_number() or \
-               self.parse_funccall() or self.parse_identifier() or \
-               self.parse_paren_expression()
+        lhs = (self.parse_string() or self.parse_number() or
+               self.parse_funccall() or self.parse_identifier() or
+               self.parse_paren_expression())
 
         if self._curtype() == 'tok_binary_op':
             token = self._eat_token('tok_binary_op')
@@ -79,10 +79,9 @@ class Parser(object):
         return StringExpr(token.value) if token else False
 
     def parse_identifier(self):
+        type = None
         if self._next_tokens('tok_type', 'tok_identifier'):
             type = self._eat_token('tok_type').value
-        else:
-            type = None
 
         token = self._eat_if_token('tok_identifier')
         return IdExpr(token.value, type) if token else False

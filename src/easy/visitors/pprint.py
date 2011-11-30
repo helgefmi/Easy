@@ -53,9 +53,8 @@ class PPrintVisitor(BaseVisitor):
 
     def visitFuncDefinition(self, node):
         self._print_indent()
-        print "FuncDefinition: %s %s, [%s]" % (node.type,
-                                               node.func_name,
-                                               ' '.join(map(str, node.args)))
+        print "FuncDefinition: %s, [%s]" % (node.func_name,
+                                            ' '.join(map(str, node.args)))
 
         with IncIndent(self):
             self.visit(node.block)

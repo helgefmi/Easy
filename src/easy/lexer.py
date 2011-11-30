@@ -58,7 +58,7 @@ class Lexer(object):
         self._tokens.append(token)
 
     def _strip_whitespace(self):
-        for i, char in enumerate(self.input):
+        for char in self.input:
             if not char.isspace():
                 break
             if char == '\n':
@@ -78,9 +78,9 @@ class Lexer(object):
             self._strip_whitespace()
             if not self.input:
                 break
-            result = self.lex_identifier() or self.lex_number() \
-                      or self.lex_symbol() or self.lex_string() \
-                      or self.lex_type()
+            result = (self.lex_identifier() or self.lex_number() or
+                      self.lex_symbol() or self.lex_string() or
+                      self.lex_type())
             self._assert(result, 'Unexpected input')
         return self._tokens
 

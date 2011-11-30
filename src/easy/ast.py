@@ -1,5 +1,3 @@
-from easy.types import get_or_create_type
-
 # Abstract
 class ASTNode(object):
     def accept(self, visitor, *args, **kwargs):
@@ -19,7 +17,6 @@ class Statement(ASTNode):
 class StringExpr(Expression):
     def __init__(self, string):
         self.string = string
-        self.type = get_or_create_type('String')
 
     def __str__(self):
         return '"%s"' % self.string
@@ -27,7 +24,6 @@ class StringExpr(Expression):
 class NumberExpr(Expression):
     def __init__(self, number):
         self.number = number
-        self.type = get_or_create_type('Number')
 
     def __str__(self):
         return '"%s"' % self.number
@@ -37,7 +33,6 @@ class BinaryOpExpr(Expression):
         self.operator = operator
         self.lhs = lhs
         self.rhs = rhs
-        self.type = None
 
     def __str__(self):
         return '"%s %s %s"' % (self.lhs, self.operator, self.rhs)
@@ -46,7 +41,6 @@ class FuncCallExpr(Expression):
     def __init__(self, func_name, args):
         self.func_name = func_name
         self.args = args
-        self.type = None
 
     def __str__(self):
         return '%s(%s)' % (self.func_name,
@@ -55,10 +49,9 @@ class FuncCallExpr(Expression):
 class IdExpr(Expression):
     def __init__(self, id, type_name):
         self.id = id
-        self.type = get_or_create_type(type_name) or None
 
     def __str__(self):
-        return '%s %s' % (self.type, self.id)
+        return '%s' % self.id
 
 # Statements
 class BlockStatement(Statement):
@@ -101,8 +94,6 @@ class FuncDefinition(ASTNode):
         self.func_name = func_name
         self.args = args
         self.block = block
-        self.type = get_or_create_type(type_name)
-        assert self.type
 
 class TopLevel(ASTNode):
     def __init__(self, block):
