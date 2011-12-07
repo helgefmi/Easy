@@ -84,7 +84,7 @@ class PPrintVisitor(BaseVisitor):
 
     def visitBinaryOpExpr(self, node):
         self._print_indent()
-        print "BinaryOpExpr: %s" % node.operator
+        print "BinaryOpExpr: (%s) %s" % (node.type, node.operator)
         with IncIndent(self):
             self.visit(node.lhs)
             self.visit(node.rhs)

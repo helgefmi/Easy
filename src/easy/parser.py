@@ -4,9 +4,12 @@ class Parser(object):
     def __init__(self, tokens):
         self._tokens = tokens
     
+    def _get_current_lineno(self):
+        return self._tokens[0].lineno if self._tokens else -1
+
     def _assert(self, cond, expected):
         if not cond:
-            lineno = self._tokens[0].lineno if self._tokens else -1
+            lineno = self._get_current_lineno()
             if cond is not False:
                 expected += ", got %s" % cond
             print expected
@@ -43,25 +46,32 @@ class Parser(object):
         return ast.TopLevel(toplevel)
 
     def parse_expression(self):
-        lhs = (self.parse_string() or self.parse_number() or
+        lineno_before = self._get_current_lineno()
+        expr = (self.parse_string() or self.parse_number() or
                self.parse_funccall() or self.parse_identifier() or
                self.parse_paren_expression())
 
         if self._curtype() == 'tok_binary_op':
             token = self._eat_token('tok_binary_op')
             rhs = self.parse_expression()
-            return ast.BinaryOpExpr(token.value, lhs, rhs)
+            expr = ast.BinaryOpExpr(token.value, expr, rhs)
+        lineno_after = self._get_current_lineno()
 
-        return lhs
+        expr.lineno_between = (lineno_before, lineno_after)
+        return expr
 
     def parse_statement(self):
+        lineno_before = self._get_current_lineno()
         statement = self.parse_if() or self.parse_return()
-        if statement:
-            return statement
+        if not statement:
+            expr = self.parse_expression()
+            if not expr:
+                return None
+            statement = ast.ExprStatement(expr)
+        lineno_after = self._get_current_lineno()
 
-        expr = self.parse_expression()
-        if expr:
-            return ast.ExprStatement(expr)
+        statement.lineno_between = (lineno_before, lineno_after)
+        return statement
 
     def parse_paren_expression(self):
         if not self._eat_if_token('tok_paren_start'):

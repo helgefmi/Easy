@@ -1,6 +1,7 @@
+from easy.type import Type
+
 # Abstract
 class ASTNode(object):
-    type = None
     def accept(self, visitor, *args, **kwargs):
         name = self.__class__.__name__
         return getattr(visitor, 'visit%s' % name)(self, *args, **kwargs)
@@ -9,7 +10,7 @@ class ASTNode(object):
         return isinstance(self, StringExpr) or isinstance(self, NumberExpr)
 
 class Expression(ASTNode):
-    pass
+    type = None
 
 class Statement(ASTNode):
     pass
@@ -18,7 +19,7 @@ class Statement(ASTNode):
 class StringExpr(Expression):
     def __init__(self, string):
         self.string = string
-        self.type = 'String'
+        self.type = Type('String')
 
     def __str__(self):
         return '"%s"' % self.string
@@ -26,7 +27,7 @@ class StringExpr(Expression):
 class NumberExpr(Expression):
     def __init__(self, number):
         self.number = number
-        self.type = 'Number'
+        self.type = Type('Number')
 
     def __str__(self):
         return '"%s"' % self.number
@@ -36,6 +37,7 @@ class BinaryOpExpr(Expression):
         self.operator = operator
         self.lhs = lhs
         self.rhs = rhs
+        self.type = Type('dunno')
 
     def __str__(self):
         return '%s %s %s' % (self.lhs, self.operator, self.rhs)
@@ -44,6 +46,7 @@ class FuncCallExpr(Expression):
     def __init__(self, func_name, args):
         self.func_name = func_name
         self.args = args
+        self.type = Type('dunno')
 
     def __str__(self):
         return '%s(%s)' % (self.func_name,
@@ -52,7 +55,7 @@ class FuncCallExpr(Expression):
 class IdExpr(Expression):
     def __init__(self, id, type):
         self.id = id
-        self.type = type
+        self.type = Type(type) if type else Type('dunno')
 
     def __str__(self):
         return '%s %s' % (self.type, self.id)
@@ -98,7 +101,15 @@ class FuncDefinition(ASTNode):
         self.func_name = func_name
         self.args = args
         self.block = block
-        self.type = type
+        self.type = Type(type) if type else Type('dunno')
+
+    def __str__(self):
+        return 'def %s %s (%s) do %s end' % (
+            self.type,
+            self.func_name,
+            ' '.join(map(str, self.args)),
+            self.block,
+        )
 
 class TopLevel(ASTNode):
     def __init__(self, block):

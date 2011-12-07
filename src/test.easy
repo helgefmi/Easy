@@ -1,22 +1,22 @@
-def Void test_functions4 do
+def test_functions4 do
     printf("SUCCESS")
 end
 
-def Void test_functions3 do
+def test_functions3 do
     test_functions4()
 end
 
-def Void test_functions2 do
+def test_functions2 do
     test_functions3()
 end
 
-def Void test_functions do
+def test_functions do
     printf("Trying to reach test_functions4.. ")
     test_functions2()
     puts("")
 end
 
-def Void test_if do
+def test_if do
     if atoi("0") then
         puts("ERROR. 0")
     else
@@ -36,7 +36,7 @@ def Void test_if do
     end
 end
 
-def Void test_compare do
+def test_compare do
     if atoi("1") < 2 then
         puts("OK. 1 < 2")
     else
@@ -74,13 +74,13 @@ def Void test_compare do
     end
 end
 
-def Void test_arithmetic do
+def test_arithmetic do
     printf("50 + 8 = %d\n" (atoi("50") + 8))
     printf("50 * 8 = %d\n" (atoi("50") * 8))
     printf("50 - 8 = %d\n" (atoi("50") - 8))
 end
 
-def Void test_binop do
+def test_binop do
     puts("test_compare()")
     test_compare()
 
@@ -88,39 +88,39 @@ def Void test_binop do
     test_arithmetic()
 end
 
-def Void test_constant_folding do
+def test_constant_folding do
     printf("5 * 5 = %d\n" (5 * 5))
     printf("9 > 5 = %d\n" (9 > 5))
     printf("9 <= 5 = %d\n" (9 <= 5))
 end
 
-def Void print_hex(Number a Number b String c) do
+def print_hex(a b c) do
     printf("0x%X, 0x%X, %s!\n" a b c)
 end
 
-def Void test_function_arguments do
+def test_function_arguments do
     puts("0x1234567, 0xDEADB0B, bake kake?")
     print_hex(19088743 233495307 "bake kake")
     puts("0x13579BD, 0x2468ACE, kakemums?")
     print_hex(20281789 38177486 "kakemums")
 end
 
-def Number just_return do
+def just_return do
     return (1337 + atoi("1") - 1)
 end
 
-def Void test_return do
+def test_return do
     printf("1337 = %d\n" just_return())
 end
 
-def Void count(Number n) do
+def count(n) do
     if n > 1 then
         count(n - 1)
     end
     printf("%d.. " n)
 end
 
-def Number nfac(Number n) do
+def nfac(n) do
     if n <= 1 then
         return 1
     else
@@ -128,7 +128,7 @@ def Number nfac(Number n) do
     end
 end
 
-def Number nfac_tail(Number n Number k) do
+def nfac_tail(n k) do
     if n <= 1 then
         return k
     else
@@ -136,20 +136,20 @@ def Number nfac_tail(Number n Number k) do
     end
 end
 
-def Number fib(Number n) do
+def fib(n) do
     if n <= 0 then return 0 end
     if n == 1 then return 1 end
     return fib(n - 2) + fib(n - 1)
 end
 
-def Number hanoi(Number n) do
+def hanoi(n) do
     if n == 1 then
         return 2
     end
     return hanoi(n - 1) + hanoi(n - 1)
 end
 
-def Void test_useful_stuff do
+def test_useful_stuff do
     puts("count(4)")
     count(4)
     puts("")
@@ -167,7 +167,7 @@ def Void test_useful_stuff do
     printf("%d\n" (hanoi(25) - 1))
 end
 
-def Void test do
+def test do
     puts("test_functions()")
     test_functions()
 
@@ -190,6 +190,6 @@ def Void test do
     test_useful_stuff()
 end
 
-def Void main do
+def main do
     test()
 end
