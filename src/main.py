@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import sys
 
+from easy.compiler import Compiler
 from easy.lexer import Lexer
 from easy.parser import Parser
-from easy.compiler import Compiler
 
 if __name__ == "__main__":
     input = sys.stdin.read()
@@ -29,4 +29,5 @@ if __name__ == "__main__":
         exit(1)
     print "compiler ok"
     
-    open('out.s', 'w').write(output)
+    with open('out.s', 'w') as f:
+        f.write(output)

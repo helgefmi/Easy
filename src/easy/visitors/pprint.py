@@ -45,8 +45,7 @@ class PPrintVisitor(BaseVisitor):
 
     def visitBlockStatement(self, node):
         self._print_indent()
-        print "Block: %d element%s" % (len(node.block), \
-                                       '' if len(node.block) == 1 else 's')
+        print "Block: %d statements" % len(node.block)
 
         with IncIndent(self):
             self._visit_list(node.block)
@@ -56,13 +55,17 @@ class PPrintVisitor(BaseVisitor):
 
     def visitFuncDefinition(self, node):
         self._print_indent()
-        print "FuncDefinition: %s %s, [%s]" % (
+        print "FuncDefinition: %s %s" % (
             node.type,
             node.func_name,
-            ' '.join(map(str, node.args))
         )
 
         with IncIndent(self):
+            self._print_indent()
+            print 'Parameters: %d elements' % len(node.args)
+            with IncIndent(self):
+                self._visit_list(node.args)
+
             self.visit(node.block)
 
     def visitIfStatement(self, node):
@@ -91,7 +94,7 @@ class PPrintVisitor(BaseVisitor):
     
     def visitIdExpr(self, node):
         self._print_indent()
-        print "Identifier: %s" % node
+        print "Identifier: %s %s" % (node.type, node.id)
 
     def visitReturnStatement(self, node):
         self._print_indent()

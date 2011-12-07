@@ -20,8 +20,8 @@ class Parser(object):
     def _next_tokens(self, *args):
         if len(args) > len(self._tokens):
             return False
-        for i, arg in enumerate(args):
-            if self._tokens[i].type != arg:
+        for arg, token in zip(args, self._tokens):
+            if arg != token.type:
                 return False
         return True
 
@@ -47,29 +47,31 @@ class Parser(object):
 
     def parse_expression(self):
         lineno_before = self._get_current_lineno()
+
         expr = (self.parse_string() or self.parse_number() or
-               self.parse_funccall() or self.parse_identifier() or
-               self.parse_paren_expression())
+                self.parse_funccall() or self.parse_identifier() or
+                self.parse_paren_expression())
 
         if self._curtype() == 'tok_binary_op':
             token = self._eat_token('tok_binary_op')
             rhs = self.parse_expression()
             expr = ast.BinaryOpExpr(token.value, expr, rhs)
-        lineno_after = self._get_current_lineno()
 
+        lineno_after = self._get_current_lineno()
         expr.lineno_between = (lineno_before, lineno_after)
         return expr
 
     def parse_statement(self):
         lineno_before = self._get_current_lineno()
+
         statement = self.parse_if() or self.parse_return()
         if not statement:
             expr = self.parse_expression()
             if not expr:
                 return None
             statement = ast.ExprStatement(expr)
-        lineno_after = self._get_current_lineno()
 
+        lineno_after = self._get_current_lineno()
         statement.lineno_between = (lineno_before, lineno_after)
         return statement
 
