@@ -101,6 +101,7 @@ end
 def test_function_arguments do
     puts("0x1234567, 0xDEADB0B, bake kake?")
     print_hex(19088743 233495307 "bake kake")
+    print_hex(19088743 233495307 "bake kake")
     puts("0x13579BD, 0x2468ACE, kakemums?")
     print_hex(20281789 38177486 "kakemums")
 end
